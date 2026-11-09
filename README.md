@@ -4,6 +4,7 @@
   <a href="../../actions/workflows/ci.yml"><img src="../../actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
   <img src="https://img.shields.io/badge/Windows%20%7C%20Linux-soportado-2ea6c9" alt="Windows | Linux">
   <img src="https://img.shields.io/badge/licencia-MIT-1fbf9b" alt="Licencia MIT">
+  <a href="#colaborar-con-el-proyecto"><img src="https://img.shields.io/badge/❤️%20Colaborar-con%20el%20proyecto-ff5e5b" alt="Colaborar"></a>
 </p>
 
 Diagnóstico de PC para Windows y Linux: prueba el hardware y el sistema, da un veredicto claro
@@ -166,14 +167,19 @@ openstd/
 
 OpenSTD Test es gratis y de código abierto. Si te sirve en tu taller y querés ayudar a que siga creciendo:
 
+<p align="center">
+  <a href="https://link.mercadopago.com.uy/m2n"><img src="https://img.shields.io/badge/Mercado%20Pago-Uruguay-00b1ea?style=for-the-badge&logo=mercadopago&logoColor=white" alt="Mercado Pago"></a>
+  <a href="https://www.paypal.com/donate/?business=DFL2E7XH6QAF6&currency_code=USD"><img src="https://img.shields.io/badge/PayPal-Donar-003087?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal"></a>
+</p>
+
 | Desde | Cómo |
 |---|---|
-| 🇺🇾 Uruguay | [Colaborar con Mercado Pago](LINK_MERCADOPAGO) |
-| 🌎 Resto del mundo | [Colaborar con PayPal](LINK_PAYPAL) |
+| 🇺🇾 Uruguay | [Colaborar con Mercado Pago](https://link.mercadopago.com.uy/m2n) |
+| 🌎 Resto del mundo | [Colaborar con PayPal](https://www.paypal.com/donate/?business=DFL2E7XH6QAF6&currency_code=USD) |
 
 También ayuda mucho reportar fallas o ideas en [Issues](../../issues), sobre todo con el PDF del reporte.
 
-*If this tool helps you, you can support it via [PayPal](LINK_PAYPAL).*
+*If this tool helps you, you can support it via [PayPal](https://www.paypal.com/donate/?business=DFL2E7XH6QAF6&currency_code=USD).*
 
 ## Licencia
 
