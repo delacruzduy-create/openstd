@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openstd"
+version = "0.1.0"
+description = "Diagnóstico de hardware y sistema para Windows y Linux, con reporte PDF y envío por correo"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "psutil>=5.9",
+    "reportlab>=4.0",
+    "wgpu>=0.19",       # prueba de placa de video propia (Vulkan, Direct3D 12, OpenGL, Metal)
+    "glfw>=2.5",        # ventana con la escena 3D de esa prueba
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Natural Language :: Spanish",
+    "Topic :: System :: Hardware",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pypdf>=4", "ruff>=0.5"]
+
+[project.scripts]
+openstd = "openstd.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["openstd*"]
+
+[tool.setuptools.package-data]
+openstd = ["web/*.html", "web/*.png"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["lento: pruebas reales de hardware que tardan algunos segundos"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = ["E741"]
+
+[tool.ruff.lint.per-file-ignores]
+"openstd/plataforma/windows.py" = ["E501"]   # scripts de PowerShell

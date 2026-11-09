@@ -1,0 +1,20 @@
+Herramientas opcionales (no vienen con el programa: se bajan de sus páginas oficiales)
+=====================================================================================
+
+OpenSTD Test busca acá (y en subcarpetas) estas herramientas:
+
+  smartctl.exe          Salud SMART completa de los discos en Windows.
+                        Viene con smartmontools: https://www.smartmontools.org/
+                        (en Linux: sudo apt install smartmontools)
+
+  FurMark               Carga de la placa de video.
+                        https://geeks3d.com/furmark/
+                        Windows: copiar la carpeta de FurMark 1 o 2 acá (que quede FurMark.exe adentro).
+                        Linux: copiar FurMark 2 para Linux (que quede el ejecutable "furmark").
+                        En Linux también sirve glmark2: sudo apt install glmark2
+
+  LibreHardwareMonitor  Temperatura real del procesador en Windows (si está abierto, OpenSTD Test la lee).
+                        https://github.com/LibreHardwareMonitor/LibreHardwareMonitor
+
+También se puede poner cualquier otro programa de carga de GPU en Ajustes > "Comando propio para cargar la GPU".
+Revisá la licencia de cada herramienta antes de distribuirla.

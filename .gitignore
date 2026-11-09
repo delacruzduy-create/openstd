@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Datos locales: configuración (tiene la contraseña del correo), reportes e historial
+datos/
+
+# Versión portable de Windows (la arma PREPARAR_PENDRIVE.bat)
+python/
+
+# Herramientas de terceros (cada uno las baja de su página oficial)
+herramientas/*
+!herramientas/LEEME.txt
+
+.claude/

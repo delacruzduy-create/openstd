@@ -1,0 +1,4 @@
+psutil>=5.9
+reportlab>=4.0
+wgpu>=0.19
+glfw>=2.5

@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenSTD Test</title>
+<link rel="icon" type="image/png" href="/icono.png">
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--txt:#1d2330;--sub:#5d6575;--borde:#dde0e6;--azul:#2557c7;--verde:#1a8c26;--rojo:#cc1d1d;--ambar:#c96a00;--suave:#eef1f6}
+@media (prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1d2129;--txt:#e7e9ee;--sub:#9aa2b1;--borde:#30353f;--azul:#6b95ff;--verde:#3fbf4f;--rojo:#ff5c5c;--ambar:#f0a030;--suave:#252a34}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+header{display:flex;align-items:center;gap:16px;padding:10px 20px;background:#0b1631;border-bottom:1px solid #1d2b4f;flex-wrap:wrap}
+header .marca{display:flex;align-items:center;gap:14px}
+header .marca img{height:48px;display:block}
+header .ver{color:#8fa3c8;font-size:12px}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{background:none;border:0;padding:9px 16px;border-radius:8px;font:inherit;color:#9fb1d4;cursor:pointer}
+nav button.activo{background:#1b2c55;color:#fff;font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+.tarjeta{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.tarjeta h2{font-size:16px;margin:0 0 10px}
+.fila{display:flex;gap:12px;flex-wrap:wrap}
+.fila>*{flex:1 1 200px}
+label{display:block;font-size:13px;color:var(--sub);margin:6px 0 3px}
+input[type=text],input[type=email],input[type=number],input[type=password],select,textarea{width:100%;padding:9px 10px;border:1px solid var(--borde);border-radius:8px;background:var(--bg);color:var(--txt);font:inherit}
+textarea{min-height:60px;resize:vertical}
+.check{display:flex;align-items:center;gap:8px;padding:7px 0;color:var(--txt);font-size:15px;margin:0}
+.check input{width:18px;height:18px}
+.check .min{width:80px;padding:5px 8px}
+.btn{display:inline-block;text-decoration:none;padding:11px 20px;border-radius:9px;border:1px solid var(--borde);background:var(--panel);color:var(--txt);font:inherit;font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.primario{background:var(--azul);border-color:var(--azul);color:#fff}
+.btn.grande{font-size:17px;padding:14px 30px}
+.btn.peligro{color:var(--rojo)}
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700;color:#fff}
+.PASA{background:var(--verde)}.FALLA{background:var(--rojo)}.NO.EVALUADO,.NOEV{background:var(--ambar)}
+.aviso{padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--ambar) 15%,transparent);border:1px solid color-mix(in srgb,var(--ambar) 45%,transparent);margin:8px 0}
+.error{padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--rojo) 12%,transparent);border:1px solid color-mix(in srgb,var(--rojo) 40%,transparent);margin:8px 0}
+.ok{padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--verde) 12%,transparent);border:1px solid color-mix(in srgb,var(--verde) 40%,transparent);margin:8px 0}
+.sub{color:var(--sub);font-size:13px}
+.datos div{padding:2px 0}
+.pasos{list-style:none;padding:0;margin:0}
+.pasos li{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--borde)}
+.pasos li:last-child{border:0}
+.pasos .ic{width:22px;text-align:center}
+.pasos .mot{color:var(--sub);font-size:13px;margin-left:auto;text-align:right;max-width:55%}
+.barra{height:10px;background:var(--suave);border-radius:6px;overflow:hidden;margin:8px 0}
+.barra div{height:100%;background:var(--azul);transition:width .5s}
+canvas{width:100%;height:170px;display:block}
+.log{font:12px/1.4 ui-monospace,Consolas,monospace;color:var(--sub);max-height:150px;overflow:auto;white-space:pre-wrap}
+.veredicto{font-size:22px;font-weight:800;padding:14px 16px;border-radius:10px;color:#fff;margin-bottom:10px}
+.resultado{border-left:4px solid var(--borde);padding:6px 12px;margin:10px 0}
+.resultado.PASA{border-color:var(--verde);background:none}.resultado.FALLA{border-color:var(--rojo);background:none}.resultado.NOEV{border-color:var(--ambar);background:none}
+.resultado ul{margin:4px 0;padding-left:18px;font-size:13.5px}
+.resultado .adv{color:var(--ambar)}
+table{width:100%;border-collapse:collapse}
+td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--borde);font-size:14px;vertical-align:top}
+th{color:var(--sub);font-weight:600;font-size:13px}
+a{color:var(--azul)}
+.oculto{display:none!important}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.leyenda{display:flex;gap:16px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+@media (max-width:640px){header{padding:10px 14px}nav{margin-left:0;width:100%}nav button{flex:1}.pasos .mot{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca"><img src="/logo.png" alt="OpenSTD Test"><div class="ver">Diagnóstico de PC<br>versión {{VERSION}}</div></div>
+  <nav>
+    <button data-tab="diag" class="activo">Diagnóstico</button>
+    <button data-tab="hist">Historial</button>
+    <button data-tab="ajustes">Ajustes</button>
+  </nav>
+</header>
+<main>
+
+<!-- ================================================================ DIAGNÓSTICO -->
+<section id="tab-diag">
+  <div id="aviso-admin" class="aviso oculto"></div>
+  <div id="aviso-correo" class="aviso oculto">El correo no está configurado: los reportes se guardan pero no se mandan. <a href="#" data-ir="ajustes">Configurarlo en Ajustes</a>.</div>
+
+  <div class="tarjeta" id="equipo">
+    <h2>Equipo</h2>
+    <div id="equipo-datos" class="datos sub">Leyendo los datos del equipo…</div>
+    <div class="acciones">
+      <button class="btn" id="btn-releer">Volver a leer</button>
+      <button class="btn" id="btn-desde-hoy" title="Después de arreglar algo: los errores viejos del sistema quedan como historial">Contar errores desde hoy</button>
+    </div>
+    <div id="referencia" class="sub" style="margin-top:6px"></div>
+  </div>
+
+  <div id="formulario">
+    <div class="tarjeta">
+      <h2>Datos del trabajo</h2>
+      <div class="fila">
+        <div><label for="orden">N.º de orden (opcional)</label><input type="text" id="orden" maxlength="40"></div>
+        <div><label for="cliente">Cliente (opcional)</label><input type="text" id="cliente" maxlength="120"></div>
+        <div><label for="correo-cliente">Correo del cliente (opcional, recibe copia)</label><input type="email" id="correo-cliente" maxlength="200"></div>
+      </div>
+      <label for="notas">Notas (qué dice el cliente, qué se hizo)</label>
+      <textarea id="notas" maxlength="2000"></textarea>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Pruebas</h2>
+      <div class="acciones" style="margin:0 0 10px">
+        <button class="btn" data-preset="rapido">Rápido (~15 min)</button>
+        <button class="btn" data-preset="completo">Completo (~45 min)</button>
+        <button class="btn" data-preset="sistema">Solo sistema (~1 min)</button>
+      </div>
+      <label class="check"><input type="checkbox" id="p-sistema" checked> Sistema operativo: pantallazos, apagados, errores de hardware y de disco</label>
+      <label class="check" id="fila-bateria"><input type="checkbox" id="p-bateria" checked> Batería: salud y ciclos</label>
+      <div id="p-discos"></div>
+      <div class="check" style="padding-left:26px"><span class="sub">Lectura de superficie:</span>
+        <select id="p-disco-modo" style="width:auto"><option value="rapido">Rápida (256 zonas)</option><option value="completo">Completa (todo el disco, tarda horas)</option></select></div>
+      <label class="check"><input type="checkbox" id="p-cpu"> Procesador al 100 % con cálculos verificados — <input type="number" class="min" id="m-cpu" min="0.5" max="600" step="0.5"> min</label>
+      <label class="check"><input type="checkbox" id="p-ram"> Memoria RAM con patrones — <input type="number" class="min" id="m-ram" min="0.5" max="600" step="0.5"> min</label>
+      <label class="check"><input type="checkbox" id="p-gpu"> Placa de video: memoria y cálculos verificados — <input type="number" class="min" id="m-gpu" min="0.5" max="600" step="0.5"> min
+        <select id="p-gpu-op" style="width:auto;margin-left:6px"></select></label>
+      <div id="gpu-sin" class="sub oculto" style="padding-left:26px"></div>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="p-enviar" checked> Mandar el reporte por correo al terminar</label>
+      <div id="form-error" class="error oculto"></div>
+      <div class="acciones"><button class="btn primario grande" id="btn-empezar">Empezar</button></div>
+    </div>
+  </div>
+
+  <div id="corriendo" class="oculto">
+    <div class="tarjeta">
+      <h2 id="corr-titulo">Diagnóstico en curso</h2>
+      <ul class="pasos" id="corr-pasos"></ul>
+      <div class="barra"><div id="corr-barra" style="width:0"></div></div>
+      <div id="corr-fase" class="sub"></div>
+      <div class="acciones"><button class="btn peligro" id="btn-cancelar">Cancelar</button></div>
+    </div>
+    <div class="tarjeta">
+      <h2>Sensores en vivo</h2>
+      <canvas id="grafico" width="1000" height="170"></canvas>
+      <div class="leyenda"><span><i style="background:var(--rojo)"></i>Temp. CPU °C</span><span><i style="background:var(--ambar)"></i>Temp. GPU °C</span><span><i style="background:var(--azul)"></i>Uso CPU %</span><span id="sens-actual"></span></div>
+    </div>
+    <div class="tarjeta"><h2>Registro</h2><div class="log" id="corr-log"></div></div>
+  </div>
+
+  <div id="final" class="oculto">
+    <div class="tarjeta">
+      <div id="fin-veredicto" class="veredicto"></div>
+      <div id="fin-conclusion"></div>
+      <div id="fin-error" class="error oculto"></div>
+      <div id="fin-correo"></div>
+      <div class="acciones">
+        <a id="fin-pdf" class="btn primario" href="#" target="_blank" style="text-decoration:none">Ver el PDF</a>
+        <button class="btn" id="btn-reenviar">Mandar por correo</button>
+        <button class="btn" id="btn-nuevo">Nuevo diagnóstico</button>
+      </div>
+    </div>
+    <div class="tarjeta"><h2>Resultados</h2><div id="fin-resultados"></div></div>
+  </div>
+</section>
+
+<!-- ================================================================ HISTORIAL -->
+<section id="tab-hist" class="oculto">
+  <div class="tarjeta">
+    <h2>Diagnósticos anteriores</h2>
+    <div id="cola-estado"></div>
+    <table><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Equipo</th><th>Resultado</th><th></th></tr></thead><tbody id="hist-filas"></tbody></table>
+    <div id="hist-vacio" class="sub oculto">Todavía no hay diagnósticos.</div>
+  </div>
+</section>
+
+<!-- ================================================================ AJUSTES -->
+<section id="tab-ajustes" class="oculto">
+  <div class="tarjeta">
+    <h2>Tu taller o empresa</h2>
+    <p class="sub">Aparece en el encabezado del PDF y en los correos. Todo es opcional.</p>
+    <div class="fila">
+      <div><label for="c-taller_nombre">Nombre</label><input type="text" id="c-taller_nombre" maxlength="120"></div>
+      <div><label for="c-taller_contacto">Contacto (teléfono, web, dirección)</label><input type="text" id="c-taller_contacto" maxlength="200"></div>
+    </div>
+    <label>Logo (PNG o JPG, hasta 2 MB)</label>
+    <div class="fila" style="align-items:center"><input type="file" id="logo" accept="image/png,image/jpeg"><span id="logo-estado" class="sub"></span><button class="btn" id="btn-logo-borrar" style="flex:0 0 auto">Quitar logo</button></div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Correo para recibir los reportes</h2>
+    <p class="sub">Los reportes se mandan desde una cuenta de correo tuya. Gmail, Outlook/Microsoft 365 y Yahoo piden una <b>contraseña de aplicación</b> (no la contraseña normal de la cuenta).</p>
+    <div class="fila">
+      <div><label for="preset">Proveedor</label><select id="preset"><option value="">Otro (cargar a mano)</option><option value="gmail">Gmail / Google Workspace</option><option value="outlook">Outlook / Microsoft 365</option><option value="yahoo">Yahoo</option><option value="zoho">Zoho</option></select></div>
+      <div><label for="c-smtp_servidor">Servidor SMTP</label><input type="text" id="c-smtp_servidor" placeholder="smtp.ejemplo.com"></div>
+      <div style="flex:0 1 110px"><label for="c-smtp_puerto">Puerto</label><input type="number" id="c-smtp_puerto" min="1" max="65535"></div>
+      <div style="flex:0 1 170px"><label for="c-smtp_seguridad">Seguridad</label><select id="c-smtp_seguridad"><option value="starttls">STARTTLS (587)</option><option value="ssl">SSL (465)</option><option value="ninguna">Ninguna</option></select></div>
+    </div>
+    <div class="fila">
+      <div><label for="c-smtp_usuario">Usuario (la dirección de la cuenta)</label><input type="email" id="c-smtp_usuario" autocomplete="off"></div>
+      <div><label for="c-smtp_clave">Contraseña de aplicación</label><input type="password" id="c-smtp_clave" autocomplete="new-password"></div>
+    </div>
+    <div class="fila">
+      <div><label for="c-remitente_nombre">Nombre del remitente</label><input type="text" id="c-remitente_nombre" placeholder="Igual al nombre del taller"></div>
+      <div><label for="c-remitente_correo">Correo del remitente</label><input type="email" id="c-remitente_correo" placeholder="Igual al usuario"></div>
+    </div>
+    <label for="c-destinatarios">Mandar los reportes a (separar con comas)</label>
+    <input type="text" id="c-destinatarios" placeholder="reportes@ejemplo.com, tecnico@ejemplo.com">
+    <label class="check"><input type="checkbox" id="c-enviar_al_terminar"> Marcar "mandar por correo" por defecto</label>
+    <div id="correo-msj"></div>
+    <div class="acciones"><button class="btn primario" data-guardar>Guardar</button><button class="btn" id="btn-probar">Guardar y mandar un correo de prueba</button></div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Pruebas</h2>
+    <div class="fila">
+      <div><label for="c-minutos_cpu">Minutos de procesador</label><input type="number" id="c-minutos_cpu" min="0.5" max="600" step="0.5"></div>
+      <div><label for="c-minutos_ram">Minutos de RAM</label><input type="number" id="c-minutos_ram" min="0.5" max="600" step="0.5"></div>
+      <div><label for="c-minutos_gpu">Minutos de placa de video</label><input type="number" id="c-minutos_gpu" min="0.5" max="600" step="0.5"></div>
+    </div>
+    <div class="fila">
+      <div><label for="c-ram_reserva_mb">RAM que se le deja al sistema (MB)</label><input type="number" id="c-ram_reserva_mb" min="256" max="65536"></div>
+      <div><label for="c-dias_eventos">Días que revisa el chequeo del sistema</label><input type="number" id="c-dias_eventos" min="1" max="365"></div>
+      <div><label for="c-disco_modo">Lectura de discos por defecto</label><select id="c-disco_modo"><option value="rapido">Rápida</option><option value="completo">Completa</option></select></div>
+    </div>
+    <div class="fila"><div><label for="c-gpu_vram_mb">Memoria de video a verificar (MB)</label><input type="number" id="c-gpu_vram_mb" min="64" max="16384"></div><div></div><div></div></div>
+    <label class="check"><input type="checkbox" id="c-gpu_ventana"> Mostrar la prueba de video en una ventana con una escena 3D (FPS y errores en vivo)</label>
+    <label for="c-gpu_comando">Herramienta externa para la GPU (opcional, no hace falta: OpenSTD trae su propia prueba)</label>
+    <input type="text" id="c-gpu_comando" placeholder='Ej.: "C:\Herramientas\mi_prueba.exe" --fullscreen'>
+    <h2 style="margin-top:16px">Umbrales</h2>
+    <div class="fila">
+      <div><label for="c-temp_cpu_alerta">Alerta de temperatura CPU (°C)</label><input type="number" id="c-temp_cpu_alerta" min="50" max="110"></div>
+      <div><label for="c-temp_gpu_alerta">Alerta de temperatura GPU (°C)</label><input type="number" id="c-temp_gpu_alerta" min="50" max="110"></div>
+      <div><label for="c-bateria_alerta">Batería: advertencia debajo de (%)</label><input type="number" id="c-bateria_alerta" min="1" max="100"></div>
+      <div><label for="c-bateria_falla">Batería: FALLA debajo de (%)</label><input type="number" id="c-bateria_falla" min="1" max="100"></div>
+    </div>
+    <div id="ajustes-msj"></div>
+    <div class="acciones"><button class="btn primario" data-guardar>Guardar</button></div>
+    <p class="sub" id="carpeta-datos"></p>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clase = v => v === "PASA" ? "PASA" : v === "FALLA" ? "FALLA" : "NOEV";
+const tam = (b, dec) => { const base = dec ? 1000 : 1024; const g = (b || 0) / base ** 3; return g >= 1000 ? (g / base).toFixed(1) + " TB" : (g >= 100 ? g.toFixed(0) : g.toFixed(1)) + " GB"; };
+const fecha = t => t ? new Date(t * 1000).toLocaleString("es", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"}) : "";
+
+async function api(ruta, datos) {
+  const op = datos === undefined ? {} : {method: "POST", headers: {"Content-Type": "application/json", "X-OpenSTD": "1"}, body: JSON.stringify(datos)};
+  const r = await fetch(ruta, op);
+  let j = {};
+  try { j = await r.json(); } catch (e) { j = {error: "Respuesta inválida del programa"}; }
+  if (!r.ok) throw Object.assign(new Error(j.error || (j.errores || []).join(" · ") || "Error " + r.status), {datos: j});
+  return j;
+}
+function mostrar(el, texto, tipo) { el.className = tipo; el.textContent = texto; el.classList.toggle("oculto", !texto); }
+
+// ---------------------------------------------------------------- pestañas
+function irA(tab) {
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("activo", b.dataset.tab === tab));
+  ["diag", "hist", "ajustes"].forEach(t => $("tab-" + t).classList.toggle("oculto", t !== tab));
+  if (tab === "hist") cargarHistorial();
+  if (tab === "ajustes") cargarAjustes();
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => irA(b.dataset.tab));
+document.querySelectorAll("[data-ir]").forEach(a => a.onclick = e => { e.preventDefault(); irA(a.dataset.ir); });
+
+// ---------------------------------------------------------------- equipo y formulario
+let OP = null, formListo = false;
+async function cargarOpciones() {
+  try { OP = await api("/api/opciones"); } catch (e) { $("equipo-datos").textContent = e.message; return; }
+  const a = $("aviso-admin");
+  a.textContent = OP.plataforma === "Windows"
+    ? "El programa no tiene permisos de administrador: la lectura de discos no se va a poder hacer. Cerralo y abrilo de nuevo aceptando el permiso."
+    : "El programa no corre como root (sudo): la lectura de discos y parte del chequeo del sistema no se van a poder hacer.";
+  a.classList.toggle("oculto", OP.admin);
+  $("aviso-correo").classList.toggle("oculto", OP.correo_listo);
+  const e = OP.equipo;
+  if (OP.error) { $("equipo-datos").innerHTML = `<div class="error">${esc(OP.error)}</div>`; }
+  else if (!e) { $("equipo-datos").textContent = "Leyendo los datos del equipo…"; setTimeout(cargarOpciones, 1500); return; }
+  else {
+    $("equipo-datos").innerHTML = `<div><b>${esc(e.identificacion)}</b></div><div>${esc(e.sistema)}</div>
+      <div>Procesador: ${esc(e.cpu)} · RAM: ${tam(e.ram)}</div>
+      <div>Video: ${esc(e.video.join(" · ") || "-")}</div>
+      <div>Discos: ${e.discos.map(d => esc(`${d.modelo} (${tam(d.tam, true)} ${d.tipo}${d.es_usb ? ", USB" : ""})`)).join(" · ") || "-"}</div>`;
+  }
+  $("referencia").textContent = OP.referencia ? `Los errores del sistema se cuentan desde el ${fecha(OP.referencia.desde)} (${OP.referencia.motivo || ""}).` : "";
+  if (!formListo && e) armarFormulario();
+}
+function armarFormulario() {
+  formListo = true;
+  const e = OP.equipo;
+  $("fila-bateria").classList.toggle("oculto", !e.bateria);
+  $("p-bateria").checked = e.bateria;
+  $("p-discos").innerHTML = e.discos.map(d => `<label class="check"><input type="checkbox" class="p-disco" value="${esc(d.id)}" ${d.es_usb ? "" : "checked"}>
+     Disco ${esc(d.id)}: ${esc(d.modelo)} · ${tam(d.tam, true)} · ${esc(d.tipo)}${d.es_usb ? " · USB (¿es el pendrive?)" : ""}${d.es_sistema ? " · tiene el sistema" : ""} — salud SMART y lectura de superficie</label>`).join("");
+  $("p-disco-modo").value = OP.disco_modo;
+  ["cpu", "ram", "gpu"].forEach(k => $("m-" + k).value = OP.minutos[k]);
+  $("p-gpu-op").innerHTML = OP.gpu.map(o => `<option value="${o.id}">${esc(o.nombre)}</option>`).join("");
+  $("p-gpu-op").classList.toggle("oculto", !OP.gpu.length);
+  $("gpu-sin").classList.toggle("oculto", OP.gpu.length > 0);
+  $("gpu-sin").textContent = "No se encontró una placa de video para probar: revisá que tenga el driver instalado." + (OP.gpu_motivo ? " (" + OP.gpu_motivo + ")" : "");
+  $("p-enviar").checked = OP.correo_listo && OP.enviar_al_terminar;
+  $("p-enviar").disabled = !OP.correo_listo;
+}
+document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => {
+  const p = b.dataset.preset;
+  $("p-sistema").checked = true;
+  $("p-bateria").checked = !!(OP && OP.equipo && OP.equipo.bateria);
+  document.querySelectorAll(".p-disco").forEach(c => c.checked = p !== "sistema" && !OP.equipo.discos.find(d => d.id === c.value).es_usb);
+  $("p-cpu").checked = p !== "sistema"; $("p-ram").checked = p !== "sistema"; $("p-gpu").checked = p === "completo" && OP.gpu.length > 0;
+  if (p === "rapido") { $("m-cpu").value = 5; $("m-ram").value = 5; }
+  if (p === "completo") { ["cpu", "ram", "gpu"].forEach(k => $("m-" + k).value = OP.minutos[k]); }
+  $("p-disco-modo").value = "rapido";
+});
+$("btn-empezar").onclick = async () => {
+  const pr = {sistema: $("p-sistema").checked, bateria: $("p-bateria").checked,
+    discos: [...document.querySelectorAll(".p-disco:checked")].map(c => c.value), disco_modo: $("p-disco-modo").value,
+    cpu: $("p-cpu").checked ? Number($("m-cpu").value) : 0, ram: $("p-ram").checked ? Number($("m-ram").value) : 0,
+    gpu: $("p-gpu").checked ? Number($("m-gpu").value) : 0, gpu_opcion: $("p-gpu-op").value};
+  try {
+    await api("/api/iniciar", {orden: $("orden").value, cliente: $("cliente").value, correo_cliente: $("correo-cliente").value,
+      notas: $("notas").value, enviar: $("p-enviar").checked, pruebas: pr});
+    mostrar($("form-error"), "", "error");
+    serie = []; ultimaT = 0; seguir();
+  } catch (e) { mostrar($("form-error"), e.message, "error"); }
+};
+$("btn-releer").onclick = async () => { formListo = false; await api("/api/releer", {}); $("equipo-datos").textContent = "Leyendo…"; setTimeout(cargarOpciones, 1000); };
+$("btn-desde-hoy").onclick = async () => {
+  if (!confirm("¿Contar los errores del sistema desde hoy? Usalo después de arreglar algo: los pantallazos y errores anteriores dejan de dar FALLA.")) return;
+  try { await api("/api/contar_desde_hoy", {}); cargarOpciones(); } catch (e) { alert(e.message); }
+};
+
+// ---------------------------------------------------------------- seguimiento
+let serie = [], ultimaT = 0, timer = null, ultimoEstado = null;
+const ICONOS = {pendiente: "○", corriendo: "◐", saltado: "–"};
+async function seguir() {
+  clearTimeout(timer);
+  let est;
+  try { est = await api("/api/estado?desde=" + ultimaT); } catch (e) { timer = setTimeout(seguir, 3000); return; }
+  ultimoEstado = est;
+  const hay = est.pasos && est.pasos.length;
+  $("formulario").classList.toggle("oculto", !!hay);
+  $("corriendo").classList.toggle("oculto", !est.corriendo);
+  $("final").classList.toggle("oculto", !hay || est.corriendo);
+  if (!hay) return;
+  for (const m of est.muestras || []) if (m.t > ultimaT) { serie.push(m); ultimaT = m.t; }
+  serie = serie.slice(-900);
+  if (est.corriendo) {
+    $("corr-titulo").textContent = "Diagnóstico en curso" + (est.orden ? " · orden " + est.orden : "");
+    $("corr-pasos").innerHTML = est.pasos.map(p => `<li><span class="ic">${p.estado === "listo" ? `<span class="chip ${clase(p.veredicto)}">${p.veredicto === "PASA" ? "✓" : p.veredicto === "FALLA" ? "✗" : "?"}</span>` : ICONOS[p.estado] || ""}</span>
+      <span>${esc(p.titulo)}${p.minutos ? ` <span class="sub">(${p.minutos} min)</span>` : ""}</span><span class="mot">${esc(p.estado === "listo" ? p.motivo : "")}</span></li>`).join("");
+    $("corr-barra").style.width = (est.porcentaje || 0) + "%";
+    $("corr-fase").textContent = est.fase || "";
+    $("corr-log").textContent = (est.log || []).join("\n");
+    dibujar();
+    timer = setTimeout(seguir, 1500);
+  } else {
+    final(est);
+  }
+}
+function final(est) {
+  const v = $("fin-veredicto");
+  v.textContent = est.veredicto || "Sin resultado";
+  v.style.background = est.veredicto === "CON FALLAS" ? "var(--rojo)" : est.veredicto === "SIN FALLAS" ? "var(--verde)" : "var(--ambar)";
+  $("fin-conclusion").textContent = est.conclusion || "";
+  mostrar($("fin-error"), est.error || "", "error");
+  const c = est.correo || {};
+  $("fin-correo").className = c.estado === "enviado" ? "ok" : c.estado === "error" ? "error" : "sub";
+  $("fin-correo").textContent = c.texto || "";
+  $("fin-pdf").classList.toggle("oculto", !est.archivo);
+  $("fin-pdf").href = "/pdf/" + encodeURIComponent(est.id);
+  $("fin-resultados").innerHTML = (est.resultados || []).map(r => `<div class="resultado ${clase(r.veredicto)}">
+    <div><span class="chip ${clase(r.veredicto)}">${esc(r.veredicto)}</span> <b>${esc(r.titulo)}</b> — ${esc(r.motivo)}</div>
+    <ul>${r.lineas.map(l => `<li>${esc(l)}</li>`).join("")}${r.advertencias.map(a => `<li class="adv">Atención: ${esc(a)}</li>`).join("")}</ul></div>`).join("");
+}
+$("btn-cancelar").onclick = async () => { if (confirm("¿Cancelar el diagnóstico? Lo que ya terminó queda en el reporte.")) { try { await api("/api/cancelar", {}); } catch (e) {} } };
+$("btn-nuevo").onclick = () => { $("final").classList.add("oculto"); $("formulario").classList.remove("oculto"); ultimoEstado = null; window.scrollTo(0, 0); };
+$("btn-reenviar").onclick = async () => {
+  const extra = prompt("¿Mandar también a otra dirección? (dejalo vacío para mandarlo solo a los destinatarios configurados)", "");
+  if (extra === null) return;
+  try { const r = await api("/api/enviar", {id: ultimoEstado.id, extra}); $("fin-correo").className = "ok"; $("fin-correo").textContent = r.texto; }
+  catch (e) { $("fin-correo").className = "error"; $("fin-correo").textContent = e.message; }
+};
+
+function dibujar() {
+  const cv = $("grafico"), ctx = cv.getContext("2d");
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr); ctx.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim();
+  ctx.strokeStyle = col("--borde"); ctx.fillStyle = col("--sub"); ctx.font = "11px system-ui"; ctx.lineWidth = 1;
+  const x0 = 34, w = W - x0 - 6, h = H - 16;
+  for (let i = 0; i <= 4; i++) { const y = 4 + h - h * i / 4; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); ctx.stroke(); ctx.fillText(String(25 * i), 4, y + 4); }
+  if (serie.length < 2) return;
+  const t0 = serie[0].t, t1 = serie[serie.length - 1].t, span = Math.max(60, t1 - t0);
+  for (const [k, c] of [["cpu", "--azul"], ["gpu_temp", "--ambar"], ["cpu_temp", "--rojo"]]) {
+    ctx.strokeStyle = col(c); ctx.lineWidth = 1.6; ctx.beginPath(); let empezado = false;
+    for (const m of serie) { if (m[k] == null) continue; const x = x0 + w * (m.t - t0) / span, y = 4 + h - h * Math.min(100, m[k]) / 100;
+      if (empezado) ctx.lineTo(x, y); else { ctx.moveTo(x, y); empezado = true; } }
+    ctx.stroke();
+  }
+  const u = serie[serie.length - 1], partes = [];
+  if (u.cpu_temp != null) partes.push(`CPU ${u.cpu_temp.toFixed(0)} °C`);
+  if (u.cpu != null) partes.push(`uso ${u.cpu.toFixed(0)} %`);
+  if (u.mhz) partes.push(`${u.mhz.toFixed(0)} MHz`);
+  if (u.gpu_temp != null) partes.push(`GPU ${u.gpu_temp.toFixed(0)} °C`);
+  $("sens-actual").textContent = "Ahora: " + (partes.join(" · ") || "sin sensores");
+}
+
+// ---------------------------------------------------------------- historial
+async function cargarHistorial() {
+  const [filas, cola] = await Promise.all([api("/api/historial"), api("/api/correo/cola")]);
+  $("hist-vacio").classList.toggle("oculto", filas.length > 0);
+  $("hist-filas").innerHTML = filas.map(f => `<tr><td>${fecha(f.inicio)}</td><td>${esc(f.orden)}</td><td>${esc(f.cliente)}</td><td>${esc(f.equipo)}</td>
+    <td><span class="chip ${f.veredicto === "CON FALLAS" ? "FALLA" : f.veredicto === "SIN FALLAS" ? "PASA" : "NOEV"}">${esc(f.veredicto)}</span></td>
+    <td>${f.hay_pdf ? `<a href="/pdf/${encodeURIComponent(f.id)}" target="_blank">PDF</a> · <a href="#" data-enviar="${esc(f.id)}">Mandar</a>` : ""}</td></tr>`).join("");
+  document.querySelectorAll("[data-enviar]").forEach(a => a.onclick = async e => {
+    e.preventDefault();
+    try { const r = await api("/api/enviar", {id: a.dataset.enviar}); alert(r.texto); } catch (x) { alert(x.message); }
+  });
+  const ce = $("cola-estado");
+  if (cola.pendientes) {
+    ce.innerHTML = `<div class="aviso">${cola.pendientes} correo(s) esperando para salir${cola.error ? ": " + esc(cola.error) : ""}. <a href="#" id="reintentar">Reintentar ahora</a></div>`;
+    $("reintentar").onclick = async e => { e.preventDefault(); await api("/api/correo/reintentar", {}); cargarHistorial(); };
+  } else ce.innerHTML = "";
+}
+
+// ---------------------------------------------------------------- ajustes
+let CFG = null;
+const CAMPOS = ["taller_nombre", "taller_contacto", "smtp_servidor", "smtp_puerto", "smtp_seguridad", "smtp_usuario", "remitente_nombre",
+  "remitente_correo", "destinatarios", "enviar_al_terminar", "minutos_cpu", "minutos_ram", "minutos_gpu", "ram_reserva_mb", "dias_eventos",
+  "disco_modo", "gpu_vram_mb", "gpu_ventana", "gpu_comando", "temp_cpu_alerta", "temp_gpu_alerta", "bateria_alerta", "bateria_falla"];
+async function cargarAjustes() {
+  CFG = await api("/api/config");
+  for (const k of CAMPOS) { const el = $("c-" + k); if (el.type === "checkbox") el.checked = !!CFG[k]; else el.value = CFG[k] ?? ""; }
+  $("c-smtp_clave").value = "";
+  $("c-smtp_clave").placeholder = CFG.smtp_clave_configurada ? "•••••••• (guardada; escribí otra para cambiarla)" : "";
+  $("logo-estado").textContent = CFG.logo ? "Hay un logo cargado" : "Sin logo";
+  $("btn-logo-borrar").classList.toggle("oculto", !CFG.logo);
+  $("carpeta-datos").textContent = "Los reportes y la configuración se guardan en: " + CFG.carpeta_datos;
+  $("preset").value = Object.entries(CFG.presets).find(([, p]) => p.smtp_servidor === CFG.smtp_servidor)?.[0] || "";
+}
+$("preset").onchange = () => { const p = CFG.presets[$("preset").value]; if (p) for (const k in p) $("c-" + k).value = p[k]; };
+async function guardar(msj) {
+  const d = {};
+  for (const k of CAMPOS) { const el = $("c-" + k); d[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? Number(el.value) : el.value; }
+  if ($("c-smtp_clave").value) d.smtp_clave = $("c-smtp_clave").value;
+  try { await api("/api/config", d); mostrar(msj, "Guardado.", "ok"); await cargarAjustes(); cargarOpciones(); return true; }
+  catch (e) { mostrar(msj, e.message, "error"); return false; }
+}
+document.querySelectorAll("[data-guardar]").forEach(b => b.onclick = () => guardar(b.closest(".tarjeta").querySelector("[id$=msj]")));
+$("btn-probar").onclick = async () => {
+  const m = $("correo-msj");
+  if (!await guardar(m)) return;
+  mostrar(m, "Mandando el correo de prueba…", "sub");
+  try { await api("/api/correo/probar", {}); mostrar(m, "Listo: el correo de prueba salió. Revisá la bandeja de entrada (y la de spam).", "ok"); }
+  catch (e) { mostrar(m, e.message, "error"); }
+};
+$("logo").onchange = () => {
+  const f = $("logo").files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = async () => { try { await api("/api/logo", {datos: String(r.result).split(",")[1]}); cargarAjustes(); } catch (e) { alert(e.message); } };
+  r.readAsDataURL(f);
+};
+$("btn-logo-borrar").onclick = async () => { await api("/api/logo", {borrar: true}); cargarAjustes(); };
+
+cargarOpciones();
+seguir();
+window.addEventListener("resize", () => { if (!$("corriendo").classList.contains("oculto")) dibujar(); });
+</script>
+</body>
+</html>
