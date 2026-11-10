@@ -12,7 +12,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from .. import __version__, correo
+from .. import EDICION_PRO, LINK_PRO, __version__, correo
 from ..diagnostico import Diagnostico
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -72,7 +72,7 @@ class Manejador(BaseHTTPRequestHandler):
         d = self.server.diag
         if u.path in ("/", "/index.html"):
             with open(os.path.join(AQUI, "panel.html"), "rb") as f:
-                html = f.read().replace(b"{{VERSION}}", __version__.encode())
+                html = f.read().replace(b"{{VERSION}}", __version__.encode()).replace(b"{{LINK_PRO}}", LINK_PRO.encode()).replace(b"{{PRO}}", b"1" if EDICION_PRO else b"0")
             return self._enviar(200, html, "text/html; charset=utf-8",
                                 {"Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; "
                                                             "script-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'"})

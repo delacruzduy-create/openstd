@@ -20,3 +20,6 @@ herramientas/*
 !herramientas/LEEME.txt
 
 .claude/
+
+# Textos de venta (no van a GitHub)
+venta/

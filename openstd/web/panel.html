@@ -58,6 +58,18 @@ table{width:100%;border-collapse:collapse}
 td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--borde);font-size:14px;vertical-align:top}
 th{color:var(--sub);font-weight:600;font-size:13px}
 a{color:var(--azul)}
+.pro-tab{color:#ffd166!important}
+.pro-tab.activo{background:#3a2f0b!important;color:#ffd166!important}
+.pro-cab{background:linear-gradient(135deg,#0b1631,#2a2160);color:#fff;border:0}
+.pro-cab h2{font-size:20px;color:#ffd166}
+.pro-cab p{color:#c9d3ea;margin:4px 0 12px}
+.pro-grilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.pro-item{position:relative;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:16px 18px;cursor:pointer}
+.pro-item:hover{border-color:#d4a72c}
+.pro-item h3{margin:0 0 6px;font-size:16px;padding-right:86px}
+.pro-item p{margin:0;color:var(--sub);font-size:13.5px}
+.pro-sello{position:absolute;top:12px;right:12px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;background:#ffd166;color:#3a2f0b}
+.btn.dorado{background:#ffd166;border-color:#ffd166;color:#3a2f0b}
 .oculto{display:none!important}
 .acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .leyenda{display:flex;gap:16px;font-size:12px;color:var(--sub);flex-wrap:wrap}
@@ -72,6 +84,7 @@ a{color:var(--azul)}
     <button data-tab="diag" class="activo">Diagnóstico</button>
     <button data-tab="hist">Historial</button>
     <button data-tab="ajustes">Ajustes</button>
+    <button data-tab="pro" class="pro-tab">⭐ Pro</button>
   </nav>
 </header>
 <main>
@@ -233,6 +246,30 @@ a{color:var(--azul)}
     <p class="sub" id="carpeta-datos"></p>
   </div>
 </section>
+
+<!-- ================================================================ PRO -->
+<section id="tab-pro" class="oculto">
+  <div class="tarjeta pro-cab">
+    <h2>⭐ OpenSTD Test Pro</h2>
+    <p>Todo lo de la versión gratis, más herramientas para resolver los problemas que encuentra el diagnóstico.
+      <span id="pro-ayuda">Comprándola también ayudás a que el proyecto siga siendo libre.</span></p>
+    <div class="acciones">
+      <a class="btn grande dorado" id="pro-comprar" target="_blank" rel="noopener">Conseguir la versión Pro</a>
+      <span class="sub oculto" id="pro-pronto" style="color:#ffd166">Próximamente: la versión Pro todavía no está a la venta.</span>
+      <span class="oculto" id="pro-tenes" style="color:#ffd166;font-weight:600">✓ Tenés la versión Pro. ¡Gracias! Las funciones nuevas llegan en las próximas actualizaciones y te avisamos por mail.</span>
+    </div>
+  </div>
+  <div class="pro-grilla">
+    <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🛠️ Reparar Windows</h3>
+      <p>Repara archivos del sistema, Windows Update y el arranque con un clic (SFC, DISM y más), con un informe de lo que se arregló.</p></div>
+    <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🎮 Monitor de juegos</h3>
+      <p>Mide FPS, temperaturas y uso mientras el cliente juega, y detecta cuellos de botella y caídas de rendimiento.</p></div>
+    <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🌐 Monitor de red</h3>
+      <p>Prueba la velocidad, los cortes y la latencia de la conexión durante horas y lo deja en el reporte.</p></div>
+    <div class="pro-item" data-pro data-incluido><span class="pro-sello">🔒 PRO</span><h3>💾 Pendrive listo, sin internet</h3>
+      <p>El pendrive viene armado con todo incluido: se usa en la PC del cliente sin bajar nada.</p></div>
+  </div>
+</section>
 </main>
 
 <script>
@@ -256,12 +293,26 @@ function mostrar(el, texto, tipo) { el.className = tipo; el.textContent = texto;
 // ---------------------------------------------------------------- pestañas
 function irA(tab) {
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("activo", b.dataset.tab === tab));
-  ["diag", "hist", "ajustes"].forEach(t => $("tab-" + t).classList.toggle("oculto", t !== tab));
+  ["diag", "hist", "ajustes", "pro"].forEach(t => $("tab-" + t).classList.toggle("oculto", t !== tab));
   if (tab === "hist") cargarHistorial();
   if (tab === "ajustes") cargarAjustes();
 }
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => irA(b.dataset.tab));
 document.querySelectorAll("[data-ir]").forEach(a => a.onclick = e => { e.preventDefault(); irA(a.dataset.ir); });
+
+// ---------------------------------------------------------------- versión Pro
+const LINK_PRO = "{{LINK_PRO}}";
+const ES_PRO = "{{PRO}}" === "1";
+if (ES_PRO) {
+  $("pro-comprar").classList.add("oculto"); $("pro-tenes").classList.remove("oculto");
+  $("pro-ayuda").classList.add("oculto");
+  document.querySelectorAll(".pro-item").forEach(el => {
+    el.querySelector(".pro-sello").textContent = el.hasAttribute("data-incluido") ? "✓ INCLUIDO" : "PRONTO";
+    el.style.cursor = "default";
+  });
+} else if (/^https?:\/\//.test(LINK_PRO)) $("pro-comprar").href = LINK_PRO;
+else { $("pro-comprar").classList.add("oculto"); $("pro-pronto").classList.remove("oculto"); }
+document.querySelectorAll("[data-pro]").forEach(el => el.onclick = () => { if ($("pro-comprar").href) window.open($("pro-comprar").href, "_blank", "noopener"); });
 
 // ---------------------------------------------------------------- equipo y formulario
 let OP = null, formListo = false;

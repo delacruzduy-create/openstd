@@ -4,6 +4,7 @@
   <a href="../../actions/workflows/ci.yml"><img src="../../actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
   <img src="https://img.shields.io/badge/Windows%20%7C%20Linux-soportado-2ea6c9" alt="Windows | Linux">
   <img src="https://img.shields.io/badge/licencia-MIT-1fbf9b" alt="Licencia MIT">
+  <a href="https://delacruz200.gumroad.com/l/openstd-pro"><img src="https://img.shields.io/badge/⭐%20Versión-Pro-ffd166" alt="Versión Pro"></a>
   <a href="#colaborar-con-el-proyecto"><img src="https://img.shields.io/badge/❤️%20Colaborar-con%20el%20proyecto-ff5e5b" alt="Colaborar"></a>
 </p>
 
@@ -15,6 +16,11 @@ para cada problema. Corre desde un pendrive, sin instalar nada en la PC del clie
 
 *English: PC diagnostics for Windows and Linux (CPU, RAM, disks, battery, GPU and OS error logs) with a PDF
 report sent by email. Local web panel, no installation needed. The interface is in Spanish.*
+
+> ⭐ **¿Querés ahorrarte la preparación?** La [**versión Pro**](https://delacruz200.gumroad.com/l/openstd-pro) trae el
+> pendrive listo para usar sin internet (Python y librerías incluidos), una guía de diagnóstico en PDF con checklists
+> para imprimir y soporte por mail. Las próximas funciones (Reparar Windows, Monitor de juegos y Monitor de red)
+> llegan gratis a quienes la compran. Comprándola también ayudás a que este proyecto siga siendo libre.
 
 ## Qué prueba
 
@@ -165,7 +171,8 @@ openstd/
 
 ## Colaborar con el proyecto
 
-OpenSTD Test es gratis y de código abierto. Si te sirve en tu taller y querés ayudar a que siga creciendo:
+OpenSTD Test es gratis y de código abierto. Si te sirve en tu taller y querés ayudar a que siga creciendo, podés
+[comprar la versión Pro](https://delacruz200.gumroad.com/l/openstd-pro) o hacer una donación:
 
 <p align="center">
   <a href="https://link.mercadopago.com.uy/m2n"><img src="https://img.shields.io/badge/Mercado%20Pago-Uruguay-00b1ea?style=for-the-badge&logo=mercadopago&logoColor=white" alt="Mercado Pago"></a>

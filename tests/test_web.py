@@ -106,3 +106,8 @@ def test_contar_desde_hoy(panel):
 def test_logo_del_panel(panel):
     st, png = pedir(panel, "GET", "/logo.png")
     assert st == 200 and png[1:4] == b"PNG"
+
+
+def test_panel_tiene_pestana_pro(panel):
+    st, html = pedir(panel, "GET", "/")
+    assert st == 200 and b"tab-pro" in html and b"{{LINK_PRO}}" not in html and b"{{PRO}}" not in html
