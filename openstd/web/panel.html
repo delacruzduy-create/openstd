@@ -69,6 +69,8 @@ a{color:var(--azul)}
 .pro-item h3{margin:0 0 6px;font-size:16px;padding-right:86px}
 .pro-item p{margin:0;color:var(--sub);font-size:13.5px}
 .pro-sello{position:absolute;top:12px;right:12px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;background:#ffd166;color:#3a2f0b}
+.candado{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:20px;background:#ffd166;color:#3a2f0b;margin-left:6px;vertical-align:middle}
+.solo-pro input:disabled{opacity:.55}
 .btn.dorado{background:#ffd166;border-color:#ffd166;color:#3a2f0b}
 .oculto{display:none!important}
 .acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
@@ -110,7 +112,7 @@ a{color:var(--azul)}
       <div class="fila">
         <div><label for="orden">N.º de orden (opcional)</label><input type="text" id="orden" maxlength="40"></div>
         <div><label for="cliente">Cliente (opcional)</label><input type="text" id="cliente" maxlength="120"></div>
-        <div><label for="correo-cliente">Correo del cliente (opcional, recibe copia)</label><input type="email" id="correo-cliente" maxlength="200"></div>
+        <div class="solo-pro"><label for="correo-cliente">Correo del cliente (opcional, recibe copia)<span class="candado oculto" data-candado>🔒 PRO</span></label><input type="email" id="correo-cliente" maxlength="200"></div>
       </div>
       <label for="notas">Notas (qué dice el cliente, qué se hizo)</label>
       <textarea id="notas" maxlength="2000"></textarea>
@@ -178,20 +180,23 @@ a{color:var(--azul)}
     <div id="cola-estado"></div>
     <table><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Equipo</th><th>Resultado</th><th></th></tr></thead><tbody id="hist-filas"></tbody></table>
     <div id="hist-vacio" class="sub oculto">Todavía no hay diagnósticos.</div>
+    <div id="hist-gratis" class="sub oculto" style="margin-top:8px">Versión gratuita: se muestran los últimos 5 diagnósticos. <a href="#" data-ir="pro">Con la versión Pro ves todos.</a></div>
   </div>
 </section>
 
 <!-- ================================================================ AJUSTES -->
 <section id="tab-ajustes" class="oculto">
   <div class="tarjeta">
-    <h2>Tu taller o empresa</h2>
+    <h2>Tu taller o empresa<span class="candado oculto" data-candado>🔒 PRO</span></h2>
     <p class="sub">Aparece en el encabezado del PDF y en los correos. Todo es opcional.</p>
-    <div class="fila">
+    <div id="taller-gratis" class="aviso oculto">En la versión gratuita el reporte sale con la marca de OpenSTD Test.
+      Con la <a href="#" data-ir="pro">versión Pro</a>, sale con el nombre, el contacto y el logo de tu taller.</div>
+    <div class="fila solo-pro">
       <div><label for="c-taller_nombre">Nombre</label><input type="text" id="c-taller_nombre" maxlength="120"></div>
       <div><label for="c-taller_contacto">Contacto (teléfono, web, dirección)</label><input type="text" id="c-taller_contacto" maxlength="200"></div>
     </div>
     <label>Logo (PNG o JPG, hasta 2 MB)</label>
-    <div class="fila" style="align-items:center"><input type="file" id="logo" accept="image/png,image/jpeg"><span id="logo-estado" class="sub"></span><button class="btn" id="btn-logo-borrar" style="flex:0 0 auto">Quitar logo</button></div>
+    <div class="fila solo-pro" style="align-items:center"><input type="file" id="logo" accept="image/png,image/jpeg"><span id="logo-estado" class="sub"></span><button class="btn" id="btn-logo-borrar" style="flex:0 0 auto">Quitar logo</button></div>
   </div>
 
   <div class="tarjeta">
@@ -256,10 +261,32 @@ a{color:var(--azul)}
     <div class="acciones">
       <a class="btn grande dorado" id="pro-comprar" target="_blank" rel="noopener">Conseguir la versión Pro</a>
       <span class="sub oculto" id="pro-pronto" style="color:#ffd166">Próximamente: la versión Pro todavía no está a la venta.</span>
-      <span class="oculto" id="pro-tenes" style="color:#ffd166;font-weight:600">✓ Tenés la versión Pro. ¡Gracias! Las funciones nuevas llegan en las próximas actualizaciones y te avisamos por mail.</span>
+      <span class="oculto" id="pro-tenes" style="color:#ffd166;font-weight:600">✓ Versión Pro activada. ¡Gracias! Las funciones nuevas llegan en las próximas actualizaciones y te avisamos por mail.</span>
     </div>
   </div>
+  <div class="tarjeta" id="lic-tarjeta">
+    <h2 id="lic-titulo">¿Ya la compraste? Activala</h2>
+    <div id="lic-form">
+      <p class="sub">Pegá la clave de licencia que te llegó en el mail de compra. Hace falta internet solo esta vez: la activación
+        queda guardada en el pendrive y después funciona sin conexión.</p>
+      <div class="fila" style="align-items:flex-end">
+        <div><label for="lic-clave">Clave de licencia</label><input type="text" id="lic-clave" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" autocomplete="off" spellcheck="false"></div>
+        <div style="flex:0 0 auto"><button class="btn primario" id="btn-activar">Activar</button></div>
+      </div>
+    </div>
+    <div id="lic-activa" class="oculto">
+      <p id="lic-datos"></p>
+      <button class="btn" id="btn-desactivar">Desactivar en este pendrive</button>
+    </div>
+    <div id="lic-msj" class="oculto"></div>
+  </div>
   <div class="pro-grilla">
+    <div class="pro-item" data-pro data-incluido><span class="pro-sello">🔒 PRO</span><h3>🏷️ Reporte con tu logo</h3>
+      <p>El PDF sale con el nombre, el contacto y el logo de tu taller, sin la marca de OpenSTD Test.</p></div>
+    <div class="pro-item" data-pro data-incluido><span class="pro-sello">🔒 PRO</span><h3>📧 Copia al cliente</h3>
+      <p>El reporte le llega por mail al cliente apenas termina el diagnóstico.</p></div>
+    <div class="pro-item" data-pro data-incluido><span class="pro-sello">🔒 PRO</span><h3>🗂️ Historial completo</h3>
+      <p>Todos tus diagnósticos a mano (la versión gratuita muestra los últimos 5).</p></div>
     <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🛠️ Reparar Windows</h3>
       <p>Repara archivos del sistema, Windows Update y el arranque con un clic (SFC, DISM y más), con un informe de lo que se arregló.</p></div>
     <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🎮 Monitor de juegos</h3>
@@ -302,17 +329,41 @@ document.querySelectorAll("[data-ir]").forEach(a => a.onclick = e => { e.prevent
 
 // ---------------------------------------------------------------- versión Pro
 const LINK_PRO = "{{LINK_PRO}}";
-const ES_PRO = "{{PRO}}" === "1";
-if (ES_PRO) {
-  $("pro-comprar").classList.add("oculto"); $("pro-tenes").classList.remove("oculto");
-  $("pro-ayuda").classList.add("oculto");
+let ES_PRO = false;
+if (/^https?:\/\//.test(LINK_PRO)) $("pro-comprar").href = LINK_PRO;
+function pintarPro(lic) {
+  ES_PRO = !!lic.pro;
+  const comprar = /^https?:\/\//.test(LINK_PRO);
+  $("pro-comprar").classList.toggle("oculto", ES_PRO || !comprar);
+  $("pro-pronto").classList.toggle("oculto", ES_PRO || comprar);
+  $("pro-tenes").classList.toggle("oculto", !ES_PRO);
+  $("pro-ayuda").classList.toggle("oculto", ES_PRO);
+  $("lic-titulo").textContent = ES_PRO ? "Tu licencia" : "¿Ya la compraste? Activala";
+  $("lic-form").classList.toggle("oculto", ES_PRO);
+  $("lic-activa").classList.toggle("oculto", !ES_PRO);
+  $("lic-datos").textContent = ES_PRO ? `Activada para ${lic.correo || "tu compra"} (clave ${lic.clave}).` : "";
   document.querySelectorAll(".pro-item").forEach(el => {
-    el.querySelector(".pro-sello").textContent = el.hasAttribute("data-incluido") ? "✓ INCLUIDO" : "PRONTO";
-    el.style.cursor = "default";
+    el.querySelector(".pro-sello").textContent = !ES_PRO ? "🔒 PRO" : el.hasAttribute("data-incluido") ? "✓ INCLUIDO" : "PRONTO";
+    el.style.cursor = ES_PRO ? "default" : "pointer";
   });
-} else if (/^https?:\/\//.test(LINK_PRO)) $("pro-comprar").href = LINK_PRO;
-else { $("pro-comprar").classList.add("oculto"); $("pro-pronto").classList.remove("oculto"); }
-document.querySelectorAll("[data-pro]").forEach(el => el.onclick = () => { if ($("pro-comprar").href) window.open($("pro-comprar").href, "_blank", "noopener"); });
+  document.querySelectorAll("[data-candado]").forEach(el => el.classList.toggle("oculto", ES_PRO));
+  document.querySelectorAll(".solo-pro input, .solo-pro button").forEach(el => el.disabled = !ES_PRO);
+  $("taller-gratis").classList.toggle("oculto", ES_PRO);
+  if (!ES_PRO) $("correo-cliente").value = "";
+}
+async function cargarLicencia() { try { pintarPro(await api("/api/licencia")); } catch (e) { /* sin licencia: queda gratis */ } }
+$("btn-activar").onclick = async () => {
+  const m = $("lic-msj");
+  mostrar(m, "Verificando la clave con Gumroad…", "sub");
+  try { pintarPro(await api("/api/licencia", {clave: $("lic-clave").value})); mostrar(m, "¡Listo! La versión Pro quedó activada.", "ok"); $("lic-clave").value = ""; }
+  catch (e) { mostrar(m, e.message, "error"); }
+};
+$("btn-desactivar").onclick = async () => {
+  if (!confirm("¿Desactivar la versión Pro en este pendrive? Después la podés volver a activar con la misma clave.")) return;
+  pintarPro(await api("/api/licencia", {desactivar: true})); mostrar($("lic-msj"), "", "sub");
+};
+cargarLicencia();
+document.querySelectorAll("[data-pro]").forEach(el => el.onclick = () => { if (!ES_PRO && $("pro-comprar").href) window.open($("pro-comprar").href, "_blank", "noopener"); });
 
 // ---------------------------------------------------------------- equipo y formulario
 let OP = null, formListo = false;
@@ -460,6 +511,7 @@ function dibujar() {
 async function cargarHistorial() {
   const [filas, cola] = await Promise.all([api("/api/historial"), api("/api/correo/cola")]);
   $("hist-vacio").classList.toggle("oculto", filas.length > 0);
+  $("hist-gratis").classList.toggle("oculto", ES_PRO || filas.length < 5);
   $("hist-filas").innerHTML = filas.map(f => `<tr><td>${fecha(f.inicio)}</td><td>${esc(f.orden)}</td><td>${esc(f.cliente)}</td><td>${esc(f.equipo)}</td>
     <td><span class="chip ${f.veredicto === "CON FALLAS" ? "FALLA" : f.veredicto === "SIN FALLAS" ? "PASA" : "NOEV"}">${esc(f.veredicto)}</span></td>
     <td>${f.hay_pdf ? `<a href="/pdf/${encodeURIComponent(f.id)}" target="_blank">PDF</a> · <a href="#" data-enviar="${esc(f.id)}">Mandar</a>` : ""}</td></tr>`).join("");

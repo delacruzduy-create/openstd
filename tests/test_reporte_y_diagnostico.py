@@ -1,5 +1,6 @@
 """El reporte PDF y el diagnóstico de punta a punta (con la plataforma simulada)."""
 import email
+import email.policy
 import os
 
 import pypdf
@@ -8,7 +9,7 @@ import pytest
 from openstd import reporte
 from openstd.diagnostico import Diagnostico, armar_correo
 from openstd.resultado import FALLA, NO_EVALUADO, PASA, Resultado, veredicto_general
-from tests.conftest import PlataformaFalsa, equipo_ejemplo
+from tests.conftest import PlataformaFalsa, activar_pro, equipo_ejemplo
 
 
 def _texto_pdf(ruta):
@@ -79,7 +80,7 @@ def _diag(cfg, plat=None):
 
 
 def test_diagnostico_completo_con_correo(cfg_correo, smtp):
-    d = _diag(cfg_correo)
+    d = activar_pro(_diag(cfg_correo))
     err = d.iniciar({"orden": "77", "cliente": "Juan", "correo_cliente": "juan@cliente.com", "enviar": True,
                      "pruebas": {"sistema": True, "bateria": True, "discos": []}})
     assert err is None
@@ -135,6 +136,8 @@ def test_eleccion_de_pasos(cfg):
     sin_bateria = PlataformaFalsa(equipo=dict(equipo_ejemplo(), baterias=0))
     assert "bateria" not in [p["clave"] for p in _diag(cfg, sin_bateria)._pasos({"bateria": True, "discos": []})]
     assert d.iniciar({"pruebas": {"sistema": False, "bateria": False, "discos": []}}) == "Elegí al menos una prueba"
+    assert "versión Pro" in d.iniciar({"correo_cliente": "juan@cliente.com", "pruebas": {"sistema": True}})
+    activar_pro(d)
     assert d.iniciar({"correo_cliente": "malo", "pruebas": {"sistema": True}}) == "El correo del cliente no es válido"
 
 
@@ -150,3 +153,35 @@ def test_opciones_de_gpu(cfg):
     d = _diag(cfg)
     ids = [o["id"] for o in d.opciones()["gpu"]]
     assert ids == ["todas", "api:OpenGL", "api:Vulkan"]         # la placa por software no se ofrece
+
+
+# ============================================================================ versión gratuita y Pro
+def test_version_gratis_sin_datos_del_taller_ni_copia_al_cliente(cfg_correo, smtp):
+    d = _diag(cfg_correo)
+    assert d.taller() == {}
+    d.iniciar({"orden": "8", "enviar": True, "pruebas": {"sistema": True, "bateria": False, "discos": []}})
+    d.esperar()
+    texto = _texto_pdf(os.path.join(cfg_correo.carpeta_reportes, d.estado["archivo"]))
+    assert "Taller de Prueba" not in texto and "OpenSTD Test" in texto
+    r = smtp.esperar()[0]
+    texto_mail = next(p.get_content() for p in email.message_from_bytes(r["datos"], policy=email.policy.default).walk()
+                      if p.get_content_type() == "text/plain")
+    assert r["para"] == ["reportes@ejemplo.com"] and "Taller de Prueba" not in texto_mail   # va solo al técnico
+    assert "versión Pro" in d.reenviar(d.estado["id"], "otro@cliente.com")["texto"]
+
+
+def test_version_pro_con_datos_del_taller(cfg_correo, smtp):
+    d = activar_pro(_diag(cfg_correo))
+    assert d.taller()["nombre"] == "Taller de Prueba"
+    d.iniciar({"enviar": False, "pruebas": {"sistema": True, "bateria": False, "discos": []}})
+    d.esperar()
+    assert "Taller de Prueba" in _texto_pdf(os.path.join(cfg_correo.carpeta_reportes, d.estado["archivo"]))
+
+
+def test_historial_gratis_muestra_los_ultimos_5(cfg):
+    d = _diag(cfg)
+    for i in range(7):
+        d.historial.guardar({"id": f"2026010{i}-000000", "inicio": i, "veredicto": "SIN FALLAS"})
+    assert len(d.historial_visible()) == 5
+    activar_pro(d)
+    assert len(d.historial_visible()) == 7

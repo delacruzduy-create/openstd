@@ -4,7 +4,8 @@ import re
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXTENSIONES = (".py", ".html", ".md", ".toml", ".yml", ".yaml", ".bat", ".sh", ".ps1", ".txt", ".cfg", ".json")
-SALTEAR = {".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".ruff_cache", "datos", "build", "dist", "venta"}  # venta: textos y zip de la versión Pro (no va a git)
+# venta/: textos y zip de la versión Pro (no va a git)
+SALTEAR = {".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".ruff_cache", "datos", "build", "dist", "venta"}
 
 
 def _archivos():

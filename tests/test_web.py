@@ -111,3 +111,16 @@ def test_logo_del_panel(panel):
 def test_panel_tiene_pestana_pro(panel):
     st, html = pedir(panel, "GET", "/")
     assert st == 200 and b"tab-pro" in html and b"{{LINK_PRO}}" not in html and b"{{PRO}}" not in html
+
+
+def test_licencia_por_api(panel):
+    from tests.conftest import gumroad_falso
+    panel.diag.licencia.consultar = gumroad_falso()
+    st, r = pedir(panel, "GET", "/api/licencia")
+    assert st == 200 and r["pro"] is False
+    st, r = pedir(panel, "POST", "/api/licencia", {"clave": "CLAVE-MALA-0000"})
+    assert st == 400 and "no es válida" in r["error"]
+    st, r = pedir(panel, "POST", "/api/licencia", {"clave": "CLAVE-BUENA-1234"})
+    assert st == 200 and r["pro"] is True and "CLAVE" not in r["clave"]
+    st, r = pedir(panel, "POST", "/api/licencia", {"desactivar": True})
+    assert st == 200 and r["pro"] is False

@@ -17,10 +17,21 @@ para cada problema. Corre desde un pendrive, sin instalar nada en la PC del clie
 *English: PC diagnostics for Windows and Linux (CPU, RAM, disks, battery, GPU and OS error logs) with a PDF
 report sent by email. Local web panel, no installation needed. The interface is in Spanish.*
 
-> ⭐ **¿Querés ahorrarte la preparación?** La [**versión Pro**](https://delacruz200.gumroad.com/l/openstd-pro) trae el
-> pendrive listo para usar sin internet (Python y librerías incluidos), una guía de diagnóstico en PDF con checklists
-> para imprimir y soporte por mail. Las próximas funciones (Reparar Windows, Monitor de juegos y Monitor de red)
-> llegan gratis a quienes la compran. Comprándola también ayudás a que este proyecto siga siendo libre.
+## Gratis y Pro
+
+| | Gratis | [⭐ Pro](https://delacruz200.gumroad.com/l/openstd-pro) |
+|---|:---:|:---:|
+| Todas las pruebas y el veredicto PASA / FALLA | ✅ | ✅ |
+| Reporte PDF y envío por correo al técnico | ✅ | ✅ |
+| Reporte con el **nombre, contacto y logo de tu taller** | — | ✅ |
+| **Copia del reporte al cliente** por correo | — | ✅ |
+| Historial | últimos 5 | completo |
+| Pendrive listo para usar sin internet (Python incluido) | armalo con `PREPARAR_PENDRIVE.bat` | ✅ |
+| Guía de diagnóstico en PDF con checklists para imprimir | — | ✅ |
+| Próximamente: Reparar Windows, Monitor de juegos, Monitor de red | — | ✅ incluidas |
+
+La versión Pro se activa en la pestaña **⭐ Pro** del panel con la clave que llega en el mail de compra
+(hace falta internet solo para activarla). Comprándola también ayudás a que este proyecto siga siendo libre.
 
 ## Qué prueba
 
@@ -104,9 +115,10 @@ En el panel: **Ajustes → Correo para recibir los reportes**.
 4. Tocá **Guardar y mandar un correo de prueba**.
 
 Si no hay internet al terminar, el reporte queda en espera y se manda solo cuando vuelve (hasta 7 días).
-En cada diagnóstico también se puede cargar el correo del cliente para que reciba una copia.
+Con la versión Pro, en cada diagnóstico también se puede cargar el correo del cliente para que reciba una copia.
 
-En **Ajustes** también se cargan el nombre del taller, un teléfono o web y un logo, que salen en el PDF.
+Con la versión Pro, en **Ajustes** se cargan el nombre del taller, un teléfono o web y un logo, que salen en el PDF
+(en la versión gratuita el reporte sale con la marca de OpenSTD Test).
 
 ## Dónde quedan los datos
 

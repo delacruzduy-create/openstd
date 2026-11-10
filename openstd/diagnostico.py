@@ -10,6 +10,7 @@ import traceback
 
 from . import correo, plataforma, reporte
 from .config import Config, destinatarios
+from .licencia import Licencia
 from .pruebas import Contexto, bateria, cpu, disco, gpu, ram, sistema
 from .resultado import FALLA, NO_EVALUADO, PASA, Progreso, Resultado, peor, veredicto_general
 from .sensores import Muestreador
@@ -24,6 +25,10 @@ def _minutos(v, defecto: float) -> float:
         return max(0.05, min(float(v), 600.0))
     except (TypeError, ValueError):
         return defecto
+
+
+HISTORIAL_GRATIS = 5      # diagnósticos que muestra el historial en la versión gratuita
+SOLO_PRO_CLIENTE = "Mandarle la copia al cliente es parte de la versión Pro (pestaña ⭐ Pro)"
 
 
 class Historial:
@@ -87,6 +92,7 @@ class Diagnostico:
         self._plat = plat
         self.muestreador = muestreador or Muestreador(plat=plat)
         self.historial = Historial(cfg)
+        self.licencia = Licencia(cfg.carpeta)
         self.cola = correo.Cola(cfg)
         self._lock = threading.Lock()
         self.equipo: dict | None = None
@@ -163,6 +169,9 @@ class Diagnostico:
                            "notas": str(op.get("notas") or "").strip()[:2000], "enviar": bool(op.get("enviar", True)),
                            "pasos": pasos, "actual": -1, "inicio": time.time(), "fin": None, "resultados": [], "veredicto": "",
                            "archivo": "", "error": "", "conclusion": "", "correo": None}
+            if self.estado["correo_cliente"] and not self.licencia.es_pro:
+                self.estado = {"corriendo": False}
+                return SOLO_PRO_CLIENTE
             if self.estado["correo_cliente"] and not destinatarios(self.estado["correo_cliente"]):
                 self.estado = {"corriendo": False}
                 return "El correo del cliente no es válido"
@@ -269,10 +278,10 @@ class Diagnostico:
         limpio = "".join(c for c in est["orden"] if c.isalnum() or c in "-_")
         nombre = f"diagnostico_{est['id']}" + (f"_orden{limpio}" if limpio else "") + ".pdf"
         ruta = os.path.join(self.cfg.carpeta_reportes, nombre)
-        v = self.cfg.cargar()
+        taller = self.taller()
         try:
             reporte.generar(ruta, est, resultados, self.equipo, self.muestreador.desde(est["marca"]),
-                            {"nombre": v["taller_nombre"], "contacto": v["taller_contacto"], "logo": v["logo"]})
+                            taller)
             est["archivo"] = nombre
         except Exception as ex:  # noqa: BLE001
             traceback.print_exc()
@@ -294,9 +303,9 @@ class Diagnostico:
         """Manda el PDF ya. Si no sale, queda en la cola y se reintenta solo."""
         if not self.cfg.correo_listo():
             return {"estado": "error", "texto": "El correo no está configurado (Ajustes > Correo): el PDF quedó guardado"}
-        asunto, cuerpo = armar_correo(reg, self.cfg.get("taller_nombre"))
+        asunto, cuerpo = armar_correo(reg, self.taller().get("nombre", ""))
         pdf = self.historial.ruta_pdf(reg)
-        extra = reg.get("correo_cliente") or ""
+        extra = (reg.get("correo_cliente") or "") if self.licencia.es_pro else ""
         try:
             correo.enviar(self.cfg, correo.armar(self.cfg, asunto, cuerpo, [pdf], extra))
         except correo.ErrorCorreo as e:
@@ -308,6 +317,8 @@ class Diagnostico:
         reg = self.historial.leer(id_)
         if not reg or not reg.get("archivo"):
             return {"estado": "error", "texto": "No existe ese reporte"}
+        if extra and not self.licencia.es_pro:
+            return {"estado": "error", "texto": SOLO_PRO_CLIENTE}
         if extra:
             reg["correo_cliente"] = extra
         r = self.enviar(reg)
@@ -316,6 +327,17 @@ class Diagnostico:
         if self.estado.get("id") == id_:
             self.estado["correo"] = r
         return r
+
+    # ------------------------------------------------------------------ versión Pro
+    def taller(self) -> dict:
+        """Los datos del taller van en el PDF y en los correos solo en la versión Pro."""
+        if not self.licencia.es_pro:
+            return {}
+        v = self.cfg.cargar()
+        return {"nombre": v["taller_nombre"], "contacto": v["taller_contacto"], "logo": v["logo"]}
+
+    def historial_visible(self) -> list[dict]:
+        return self.historial.lista(50 if self.licencia.es_pro else HISTORIAL_GRATIS)
 
     # ------------------------------------------------------------------ estado para el panel
     def estado_publico(self, desde: float = 0) -> dict:

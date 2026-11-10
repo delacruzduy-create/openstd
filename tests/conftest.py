@@ -200,3 +200,23 @@ def puerto_cerrado() -> int:
 
 
 os.environ.setdefault("OPENSTD_SIN_NAVEGADOR", "1")
+
+
+def gumroad_falso(usos=1, devuelta=False, sin_internet=False, valida=("CLAVE-BUENA-1234",)):
+    """Reemplazo de licencia.consultar_gumroad: no sale a internet."""
+    from openstd import licencia
+
+    def consultar(clave, sumar_uso):
+        if sin_internet:
+            raise licencia.SinConexion("No se pudo conectar con Gumroad: sin red")
+        if clave not in valida:
+            raise licencia.ErrorLicencia("Esa clave no es válida. Copiala tal cual del mail de compra.")
+        return {"success": True, "uses": usos, "purchase": {"email": "comprador@ejemplo.com", "refunded": devuelta}}
+    return consultar
+
+
+def activar_pro(diag):
+    """Deja el diagnóstico en versión Pro sin hablar con Gumroad."""
+    diag.licencia.consultar = gumroad_falso()
+    assert diag.licencia.activar("CLAVE-BUENA-1234") is None
+    return diag

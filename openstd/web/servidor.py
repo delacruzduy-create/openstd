@@ -12,7 +12,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from .. import EDICION_PRO, LINK_PRO, __version__, correo
+from .. import LINK_PRO, __version__, correo
 from ..diagnostico import Diagnostico
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -72,7 +72,7 @@ class Manejador(BaseHTTPRequestHandler):
         d = self.server.diag
         if u.path in ("/", "/index.html"):
             with open(os.path.join(AQUI, "panel.html"), "rb") as f:
-                html = f.read().replace(b"{{VERSION}}", __version__.encode()).replace(b"{{LINK_PRO}}", LINK_PRO.encode()).replace(b"{{PRO}}", b"1" if EDICION_PRO else b"0")
+                html = f.read().replace(b"{{VERSION}}", __version__.encode()).replace(b"{{LINK_PRO}}", LINK_PRO.encode())
             return self._enviar(200, html, "text/html; charset=utf-8",
                                 {"Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; "
                                                             "script-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'"})
@@ -88,7 +88,9 @@ class Manejador(BaseHTTPRequestHandler):
                 desde = 0
             return self._json(200, d.estado_publico(desde))
         if u.path == "/api/historial":
-            return self._json(200, d.historial.lista())
+            return self._json(200, d.historial_visible())
+        if u.path == "/api/licencia":
+            return self._json(200, d.licencia.estado())
         if u.path == "/api/config":
             return self._json(200, d.cfg.publico() | {"presets": correo.PRESETS})
         if u.path == "/api/correo/cola":
@@ -156,6 +158,12 @@ class Manejador(BaseHTTPRequestHandler):
             return self._json(200, {"enviados": n, "pendientes": len(d.cola.pendientes()), "error": d.cola.ultimo_error})
         if ruta == "/api/logo":
             return self._logo(datos)
+        if ruta == "/api/licencia":
+            if datos.get("desactivar"):
+                d.licencia.desactivar()
+                return self._json(200, d.licencia.estado())
+            err = d.licencia.activar(str(datos.get("clave") or ""))
+            return self._json(400, {"error": err}) if err else self._json(200, d.licencia.estado())
         return self._json(404, {"error": "No encontrado"})
 
     def _logo(self, datos: dict):

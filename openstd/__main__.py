@@ -39,6 +39,7 @@ def cmd_panel(args) -> int:
     diag.cargar_equipo()
     parar = threading.Event()
     diag.cola.iniciar(parar)
+    threading.Thread(target=diag.licencia.revisar, daemon=True, name="licencia").start()
     srv = servir(diag, args.puerto or cfg.get("puerto"))
     url = f"http://localhost:{srv.server_port}/"
     print("=" * 64)
