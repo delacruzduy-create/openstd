@@ -28,7 +28,8 @@ report sent by email. Local web panel, no installation needed. The interface is 
 | Historial | últimos 5 | completo |
 | Pendrive listo para usar sin internet (Python incluido) | armalo con `PREPARAR_PENDRIVE.bat` | ✅ |
 | Guía de diagnóstico en PDF con checklists para imprimir | — | ✅ |
-| Próximamente: Reparar Windows, Monitor de juegos, Monitor de red | — | ✅ incluidas |
+| **Reparar Windows** con un clic: DISM, SFC, CHKDSK, Windows Update, red y arranque, con reporte de lo que se arregló | — | ✅ |
+| Próximamente: Monitor de juegos, Monitor de red | — | ✅ incluidas |
 
 La versión Pro se activa en la pestaña **⭐ Pro** del panel con la clave que llega en el mail de compra
 (hace falta internet solo para activarla). Comprándola también ayudás a que este proyecto siga siendo libre.

@@ -1,6 +1,6 @@
 """OpenSTD Test: diagnóstico de hardware y sistema para Windows y Linux."""
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"
 NOMBRE = "OpenSTD Test"
 
 # Página donde se compra la versión Pro (Gumroad, Mercado Pago, etc.).

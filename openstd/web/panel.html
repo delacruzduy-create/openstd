@@ -139,6 +139,16 @@ a{color:var(--azul)}
       <div id="form-error" class="error oculto"></div>
       <div class="acciones"><button class="btn primario grande" id="btn-empezar">Empezar</button></div>
     </div>
+
+    <div class="tarjeta oculto" id="rep-tarjeta">
+      <h2>🛠️ Reparar Windows<span class="candado oculto" data-candado>🔒 PRO</span></h2>
+      <p class="sub">Repara la imagen de Windows, los archivos del sistema, el disco y Windows Update, con un reporte de lo que se arregló.
+        Antes crea un punto de restauración. Tarda entre 20 y 40 minutos y conviene tener internet.</p>
+      <div id="rep-gratis" class="aviso oculto">Reparar Windows es parte de la <a href="#" data-ir="pro">versión Pro</a>.</div>
+      <div id="rep-lista" class="solo-pro"></div>
+      <div id="rep-error" class="error oculto"></div>
+      <div class="acciones"><button class="btn primario grande" id="btn-reparar">Reparar</button></div>
+    </div>
   </div>
 
   <div id="corriendo" class="oculto">
@@ -149,7 +159,7 @@ a{color:var(--azul)}
       <div id="corr-fase" class="sub"></div>
       <div class="acciones"><button class="btn peligro" id="btn-cancelar">Cancelar</button></div>
     </div>
-    <div class="tarjeta">
+    <div class="tarjeta" id="corr-sensores">
       <h2>Sensores en vivo</h2>
       <canvas id="grafico" width="1000" height="170"></canvas>
       <div class="leyenda"><span><i style="background:var(--rojo)"></i>Temp. CPU °C</span><span><i style="background:var(--ambar)"></i>Temp. GPU °C</span><span><i style="background:var(--azul)"></i>Uso CPU %</span><span id="sens-actual"></span></div>
@@ -287,7 +297,7 @@ a{color:var(--azul)}
       <p>El reporte le llega por mail al cliente apenas termina el diagnóstico.</p></div>
     <div class="pro-item" data-pro data-incluido><span class="pro-sello">🔒 PRO</span><h3>🗂️ Historial completo</h3>
       <p>Todos tus diagnósticos a mano (la versión gratuita muestra los últimos 5).</p></div>
-    <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🛠️ Reparar Windows</h3>
+    <div class="pro-item" data-pro data-incluido><span class="pro-sello">🔒 PRO</span><h3>🛠️ Reparar Windows</h3>
       <p>Repara archivos del sistema, Windows Update y el arranque con un clic (SFC, DISM y más), con un informe de lo que se arregló.</p></div>
     <div class="pro-item" data-pro><span class="pro-sello">🔒 PRO</span><h3>🎮 Monitor de juegos</h3>
       <p>Mide FPS, temperaturas y uso mientras el cliente juega, y detecta cuellos de botella y caídas de rendimiento.</p></div>
@@ -304,6 +314,7 @@ a{color:var(--azul)}
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clase = v => v === "PASA" ? "PASA" : v === "FALLA" ? "FALLA" : "NOEV";
+const claseGeneral = v => ["CON FALLAS", "QUEDARON PROBLEMAS"].includes(v) ? "FALLA" : ["SIN FALLAS", "REPARADO", "SIN PROBLEMAS"].includes(v) ? "PASA" : "NOEV";
 const tam = (b, dec) => { const base = dec ? 1000 : 1024; const g = (b || 0) / base ** 3; return g >= 1000 ? (g / base).toFixed(1) + " TB" : (g >= 100 ? g.toFixed(0) : g.toFixed(1)) + " GB"; };
 const fecha = t => t ? new Date(t * 1000).toLocaleString("es", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"}) : "";
 
@@ -349,6 +360,10 @@ function pintarPro(lic) {
   document.querySelectorAll("[data-candado]").forEach(el => el.classList.toggle("oculto", ES_PRO));
   document.querySelectorAll(".solo-pro input, .solo-pro button").forEach(el => el.disabled = !ES_PRO);
   $("taller-gratis").classList.toggle("oculto", ES_PRO);
+  $("rep-gratis").classList.toggle("oculto", ES_PRO);
+  $("btn-reparar").textContent = ES_PRO ? "Reparar" : "🔒 Conseguir la versión Pro";
+  $("btn-reparar").classList.toggle("dorado", !ES_PRO);
+  $("btn-reparar").classList.toggle("primario", ES_PRO);
   if (!ES_PRO) $("correo-cliente").value = "";
 }
 async function cargarLicencia() { try { pintarPro(await api("/api/licencia")); } catch (e) { /* sin licencia: queda gratis */ } }
@@ -371,7 +386,7 @@ async function cargarOpciones() {
   try { OP = await api("/api/opciones"); } catch (e) { $("equipo-datos").textContent = e.message; return; }
   const a = $("aviso-admin");
   a.textContent = OP.plataforma === "Windows"
-    ? "El programa no tiene permisos de administrador: la lectura de discos no se va a poder hacer. Cerralo y abrilo de nuevo aceptando el permiso."
+    ? "El programa no tiene permisos de administrador: la lectura de discos y la reparación de Windows no se van a poder hacer. Cerralo y abrilo de nuevo aceptando el permiso."
     : "El programa no corre como root (sudo): la lectura de discos y parte del chequeo del sistema no se van a poder hacer.";
   a.classList.toggle("oculto", OP.admin);
   $("aviso-correo").classList.toggle("oculto", OP.correo_listo);
@@ -402,7 +417,35 @@ function armarFormulario() {
   $("gpu-sin").textContent = "No se encontró una placa de video para probar: revisá que tenga el driver instalado." + (OP.gpu_motivo ? " (" + OP.gpu_motivo + ")" : "");
   $("p-enviar").checked = OP.correo_listo && OP.enviar_al_terminar;
   $("p-enviar").disabled = !OP.correo_listo;
+  armarReparar();
 }
+const AYUDA_REP = {
+  punto: "por si hay que volver atrás",
+  dism: "repara la imagen de Windows; baja de Windows Update lo que falta",
+  sfc: "revisa y repara los archivos del sistema dañados",
+  chkdsk: "revisa el disco sin reiniciar; si hace falta, deja la reparación para el próximo arranque",
+  wu: "cuando Windows Update se traba o da error: vacía la caché de actualizaciones",
+  red: "cuando no hay internet o falla el DNS; después hay que reiniciar",
+  arranque: "solo si la PC tuvo problemas para arrancar; si hay otro sistema instalado, puede dejar de aparecer en el menú de inicio",
+};
+function armarReparar() {
+  $("rep-tarjeta").classList.toggle("oculto", OP.plataforma !== "Windows");
+  $("rep-lista").innerHTML = (OP.reparaciones || []).map(r => `<label class="check"><input type="checkbox" class="p-rep" value="${esc(r.clave)}" ${r.defecto ? "checked" : ""} ${ES_PRO ? "" : "disabled"}>
+     ${esc(r.titulo)} <span class="sub">— ${esc(AYUDA_REP[r.clave] || "")}</span></label>`).join("");
+}
+$("btn-reparar").onclick = async () => {
+  if (!ES_PRO) { if ($("pro-comprar").href) window.open($("pro-comprar").href, "_blank", "noopener"); return; }
+  const rep = {};
+  document.querySelectorAll(".p-rep").forEach(c => rep[c.value] = c.checked);
+  if (!Object.values(rep).some(Boolean)) { mostrar($("rep-error"), "Elegí al menos una reparación", "error"); return; }
+  if (!confirm("Se van a hacer cambios en Windows para repararlo. No apagues la PC mientras tanto. ¿Empezar?")) return;
+  try {
+    await api("/api/iniciar", {orden: $("orden").value, cliente: $("cliente").value, correo_cliente: $("correo-cliente").value,
+      notas: $("notas").value, enviar: $("p-enviar").checked, reparar: rep});
+    mostrar($("rep-error"), "", "error");
+    serie = []; ultimaT = 0; seguir();
+  } catch (e) { mostrar($("rep-error"), e.message, "error"); }
+};
 document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => {
   const p = b.dataset.preset;
   $("p-sistema").checked = true;
@@ -447,7 +490,8 @@ async function seguir() {
   for (const m of est.muestras || []) if (m.t > ultimaT) { serie.push(m); ultimaT = m.t; }
   serie = serie.slice(-900);
   if (est.corriendo) {
-    $("corr-titulo").textContent = "Diagnóstico en curso" + (est.orden ? " · orden " + est.orden : "");
+    $("corr-titulo").textContent = (est.tipo === "reparacion" ? "Reparación en curso" : "Diagnóstico en curso") + (est.orden ? " · orden " + est.orden : "");
+    $("corr-sensores").classList.toggle("oculto", est.tipo === "reparacion");
     $("corr-pasos").innerHTML = est.pasos.map(p => `<li><span class="ic">${p.estado === "listo" ? `<span class="chip ${clase(p.veredicto)}">${p.veredicto === "PASA" ? "✓" : p.veredicto === "FALLA" ? "✗" : "?"}</span>` : ICONOS[p.estado] || ""}</span>
       <span>${esc(p.titulo)}${p.minutos ? ` <span class="sub">(${p.minutos} min)</span>` : ""}</span><span class="mot">${esc(p.estado === "listo" ? p.motivo : "")}</span></li>`).join("");
     $("corr-barra").style.width = (est.porcentaje || 0) + "%";
@@ -462,7 +506,8 @@ async function seguir() {
 function final(est) {
   const v = $("fin-veredicto");
   v.textContent = est.veredicto || "Sin resultado";
-  v.style.background = est.veredicto === "CON FALLAS" ? "var(--rojo)" : est.veredicto === "SIN FALLAS" ? "var(--verde)" : "var(--ambar)";
+  v.style.background = {FALLA: "var(--rojo)", PASA: "var(--verde)"}[claseGeneral(est.veredicto)] || "var(--ambar)";
+  $("btn-nuevo").textContent = est.tipo === "reparacion" ? "Volver" : "Nuevo diagnóstico";
   $("fin-conclusion").textContent = est.conclusion || "";
   mostrar($("fin-error"), est.error || "", "error");
   const c = est.correo || {};
@@ -474,7 +519,12 @@ function final(est) {
     <div><span class="chip ${clase(r.veredicto)}">${esc(r.veredicto)}</span> <b>${esc(r.titulo)}</b> — ${esc(r.motivo)}</div>
     <ul>${r.lineas.map(l => `<li>${esc(l)}</li>`).join("")}${r.advertencias.map(a => `<li class="adv">Atención: ${esc(a)}</li>`).join("")}</ul></div>`).join("");
 }
-$("btn-cancelar").onclick = async () => { if (confirm("¿Cancelar el diagnóstico? Lo que ya terminó queda en el reporte.")) { try { await api("/api/cancelar", {}); } catch (e) {} } };
+$("btn-cancelar").onclick = async () => {
+  const rep = ultimoEstado && ultimoEstado.tipo === "reparacion";
+  if (!confirm(rep ? "¿Cancelar la reparación? Se corta lo que está corriendo y lo que ya terminó queda en el reporte."
+                   : "¿Cancelar el diagnóstico? Lo que ya terminó queda en el reporte.")) return;
+  try { await api("/api/cancelar", {}); } catch (e) {}
+};
 $("btn-nuevo").onclick = () => { $("final").classList.add("oculto"); $("formulario").classList.remove("oculto"); ultimoEstado = null; window.scrollTo(0, 0); };
 $("btn-reenviar").onclick = async () => {
   const extra = prompt("¿Mandar también a otra dirección? (dejalo vacío para mandarlo solo a los destinatarios configurados)", "");
@@ -513,7 +563,7 @@ async function cargarHistorial() {
   $("hist-vacio").classList.toggle("oculto", filas.length > 0);
   $("hist-gratis").classList.toggle("oculto", ES_PRO || filas.length < 5);
   $("hist-filas").innerHTML = filas.map(f => `<tr><td>${fecha(f.inicio)}</td><td>${esc(f.orden)}</td><td>${esc(f.cliente)}</td><td>${esc(f.equipo)}</td>
-    <td><span class="chip ${f.veredicto === "CON FALLAS" ? "FALLA" : f.veredicto === "SIN FALLAS" ? "PASA" : "NOEV"}">${esc(f.veredicto)}</span></td>
+    <td>${f.tipo === "reparacion" ? "🛠️ " : ""}<span class="chip ${claseGeneral(f.veredicto)}">${esc(f.veredicto)}</span></td>
     <td>${f.hay_pdf ? `<a href="/pdf/${encodeURIComponent(f.id)}" target="_blank">PDF</a> · <a href="#" data-enviar="${esc(f.id)}">Mandar</a>` : ""}</td></tr>`).join("");
   document.querySelectorAll("[data-enviar]").forEach(a => a.onclick = async e => {
     e.preventDefault();

@@ -8,7 +8,7 @@ import threading
 import time
 import traceback
 
-from . import correo, plataforma, reporte
+from . import correo, plataforma, reparar, reporte
 from .config import Config, destinatarios
 from .licencia import Licencia
 from .pruebas import Contexto, bateria, cpu, disco, gpu, ram, sistema
@@ -29,6 +29,7 @@ def _minutos(v, defecto: float) -> float:
 
 HISTORIAL_GRATIS = 5      # diagnósticos que muestra el historial en la versión gratuita
 SOLO_PRO_CLIENTE = "Mandarle la copia al cliente es parte de la versión Pro (pestaña ⭐ Pro)"
+SOLO_PRO_REPARAR = "Reparar Windows es parte de la versión Pro (pestaña ⭐ Pro)"
 
 
 class Historial:
@@ -60,7 +61,7 @@ class Historial:
         for nombre in nombres:
             reg = self.leer(nombre[:-5])
             if reg:
-                r.append({k: reg.get(k) for k in ("id", "inicio", "fin", "orden", "cliente", "equipo", "veredicto", "correo")}
+                r.append({k: reg.get(k) for k in ("id", "inicio", "fin", "orden", "cliente", "equipo", "veredicto", "correo", "tipo")}
                          | {"hay_pdf": bool(reg.get("archivo") and os.path.exists(self.ruta_pdf(reg)))})
         return r
 
@@ -70,7 +71,8 @@ class Historial:
 
 def armar_correo(reg: dict, taller: str = "") -> tuple[str, str]:
     res = [Resultado.de_dict(r) for r in reg.get("resultados") or []]
-    cab = "Reporte de diagnóstico" + (f" de la orden {reg['orden']}" if reg.get("orden") else "") + \
+    es_rep = reg.get("tipo") == "reparacion"
+    cab = ("Reporte de reparación" if es_rep else "Reporte de diagnóstico") + (f" de la orden {reg['orden']}" if reg.get("orden") else "") + \
           (f" - {reg['cliente']}" if reg.get("cliente") else "")
     cuerpo = [cab + ".", "", f"Equipo: {reg.get('equipo')}",
               f"Fecha: {time.strftime('%d/%m/%Y %H:%M', time.localtime(reg.get('inicio') or time.time()))}", ""]
@@ -82,7 +84,8 @@ def armar_correo(reg: dict, taller: str = "") -> tuple[str, str]:
     cuerpo += ["", "El detalle completo está en el PDF adjunto."]
     if taller:
         cuerpo += ["", taller]
-    asunto = f"[Diagnóstico: {reg.get('veredicto')}]" + (f" Orden {reg['orden']}" if reg.get("orden") else "") + f" - {reg.get('equipo')}"
+    asunto = (f"[{'Reparación' if es_rep else 'Diagnóstico'}: {reg.get('veredicto')}]" + (f" Orden {reg['orden']}" if reg.get("orden") else "")
+              + f" - {reg.get('equipo')}")
     return asunto, "\n".join(cuerpo)
 
 
@@ -150,7 +153,8 @@ class Diagnostico:
                 "equipo": resumen, "gpu": [{"id": o["id"], "nombre": o["nombre"]} for o in self._gpu_ops], "gpu_motivo": self.gpu_motivo,
                 "minutos": {k: self.cfg.get(f"minutos_{k}") for k in ("cpu", "ram", "gpu")}, "disco_modo": self.cfg.get("disco_modo"),
                 "correo_listo": self.cfg.correo_listo(),
-                "enviar_al_terminar": self.cfg.get("enviar_al_terminar"), "referencia": ref}
+                "enviar_al_terminar": self.cfg.get("enviar_al_terminar"), "referencia": ref,
+                "reparaciones": [{"clave": c, "titulo": t, "minutos": m, "defecto": d} for c, t, m, d in reparar.REPARACIONES]}
 
     # ------------------------------------------------------------------ ejecución
     def iniciar(self, op: dict) -> str | None:
@@ -160,11 +164,20 @@ class Diagnostico:
                 return "Ya hay un diagnóstico corriendo"
             if not self.equipo:
                 return "Todavía se están leyendo los datos del equipo: esperá unos segundos"
-            pasos = self._pasos(op.get("pruebas") or {})
-            if not pasos:
-                return "Elegí al menos una prueba"
+            tipo = "reparacion" if op.get("reparar") is not None else "diagnostico"
+            if tipo == "reparacion":
+                err = self._puede_reparar()
+                if err:
+                    return err
+                pasos = self._pasos_reparar(op.get("reparar") or {})
+                if not pasos:
+                    return "Elegí al menos una reparación"
+            else:
+                pasos = self._pasos(op.get("pruebas") or {})
+                if not pasos:
+                    return "Elegí al menos una prueba"
             self.progreso = Progreso()
-            self.estado = {"corriendo": True, "id": time.strftime("%Y%m%d-%H%M%S"), "orden": _limpio(op.get("orden"), 40),
+            self.estado = {"corriendo": True, "tipo": tipo, "id": time.strftime("%Y%m%d-%H%M%S"), "orden": _limpio(op.get("orden"), 40),
                            "cliente": _limpio(op.get("cliente"), 120), "correo_cliente": _limpio(op.get("correo_cliente"), 200),
                            "notas": str(op.get("notas") or "").strip()[:2000], "enviar": bool(op.get("enviar", True)),
                            "pasos": pasos, "actual": -1, "inicio": time.time(), "fin": None, "resultados": [], "veredicto": "",
@@ -211,6 +224,23 @@ class Diagnostico:
             paso.update(estado="pendiente", veredicto="", motivo="")
         return pasos
 
+    def _puede_reparar(self) -> str | None:
+        if not self.licencia.es_pro:
+            return SOLO_PRO_REPARAR
+        if self.plat.nombre != "Windows":
+            return "Reparar Windows solo funciona en Windows"
+        if not self.plat.es_admin():
+            return "Para reparar Windows hace falta abrir el programa como administrador"
+        return None
+
+    def _pasos_reparar(self, elegidas: dict) -> list[dict]:
+        pasos = []
+        for clave, titulo, minutos, defecto in reparar.REPARACIONES:
+            if elegidas.get(clave, defecto):
+                pasos.append({"clave": "rep_" + clave, "titulo": titulo, "estimado": minutos * 60,
+                              "estado": "pendiente", "veredicto": "", "motivo": ""})
+        return pasos
+
     def _correr(self) -> None:
         e = self.equipo
         resultados: list[Resultado] = []
@@ -253,6 +283,8 @@ class Diagnostico:
 
     def _ejecutar(self, paso: dict, ctx: Contexto) -> list[Resultado]:
         c = paso["clave"]
+        if c.startswith("rep_"):
+            return [reparar.ejecutar(ctx, c[4:])]
         if c == "sistema":
             return [sistema.ejecutar(ctx)]
         if c == "bateria":
@@ -273,20 +305,21 @@ class Diagnostico:
         est = self.estado
         est["fin"] = time.time()
         self.progreso.set_fase("Armando el reporte PDF...")
-        est["veredicto"] = veredicto_general(resultados)
+        es_rep = est.get("tipo") == "reparacion"
+        est["veredicto"] = reparar.veredicto(resultados) if es_rep else veredicto_general(resultados)
         est["conclusion"] = reporte.conclusion(resultados)
         limpio = "".join(c for c in est["orden"] if c.isalnum() or c in "-_")
-        nombre = f"diagnostico_{est['id']}" + (f"_orden{limpio}" if limpio else "") + ".pdf"
+        nombre = ("reparacion_" if es_rep else "diagnostico_") + est["id"] + (f"_orden{limpio}" if limpio else "") + ".pdf"
         ruta = os.path.join(self.cfg.carpeta_reportes, nombre)
         taller = self.taller()
         try:
-            reporte.generar(ruta, est, resultados, self.equipo, self.muestreador.desde(est["marca"]),
+            reporte.generar(ruta, est, resultados, self.equipo, None if es_rep else self.muestreador.desde(est["marca"]),
                             taller)
             est["archivo"] = nombre
         except Exception as ex:  # noqa: BLE001
             traceback.print_exc()
             est["error"] = f"No se pudo generar el PDF: {ex}"
-        reg = {k: est.get(k) for k in ("id", "inicio", "fin", "orden", "cliente", "correo_cliente", "notas", "veredicto", "archivo")}
+        reg = {k: est.get(k) for k in ("id", "tipo", "inicio", "fin", "orden", "cliente", "correo_cliente", "notas", "veredicto", "archivo")}
         reg["equipo"] = reporte.identificacion(self.equipo)
         reg["resultados"] = [r.a_dict() for r in resultados]
         if est["archivo"] and est["enviar"]:

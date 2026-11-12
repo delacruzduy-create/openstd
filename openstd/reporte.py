@@ -7,7 +7,7 @@ import os
 import time
 from xml.sax.saxutils import escape
 
-from . import __version__
+from . import __version__, reparar
 from .resultado import FALLA, NO_EVALUADO, PASA, Resultado, veredicto_general
 from .util import tam
 
@@ -17,6 +17,8 @@ VERDE, ROJO, AMBAR, GRIS, AZUL = "#1a8c26", "#cc0d0d", "#d97300", "#737373", "#2
 # ============================================================================ textos (sin reportlab: se usan también en el correo)
 def conclusion(resultados: list[Resultado]) -> str:
     """La frase para el cliente: ¿es el hardware o es el sistema?"""
+    if reparar.es_reparacion(resultados):
+        return reparar.conclusion(resultados)
     hw = [r for r in resultados if r.codigo != "SISTEMA"]
     sw = [r for r in resultados if r.codigo == "SISTEMA"]
     bateria_mal = any(r.codigo.startswith("BATERIA") and r.veredicto == FALLA for r in hw)
@@ -99,6 +101,8 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
     from reportlab.platypus import Image, KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     taller = taller or {}
+    es_rep = datos.get("tipo") == "reparacion"
+    titulo_doc = "Reporte de reparación" if es_rep else "Reporte de diagnóstico"
     col = {PASA: VERDE, FALLA: ROJO, NO_EVALUADO: AMBAR}
     t_titulo = ParagraphStyle("titulo", fontName="Helvetica-Bold", fontSize=17, leading=21)
     t_texto = ParagraphStyle("texto", fontName="Helvetica", fontSize=9.5, leading=12.5)
@@ -143,7 +147,7 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
                                  ("LINEBELOW", (0, 0), (-1, 0), 0.6, colors.HexColor(GRIS)), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
         historia += [cab, Spacer(1, 6)]
 
-    historia.append(p("Reporte de diagnóstico", t_titulo))
+    historia.append(p(titulo_doc, t_titulo))
     inicio = datos.get("inicio") or time.time()
     filas = [("Fecha", time.strftime("%d/%m/%Y %H:%M", time.localtime(inicio))), ("Equipo", identificacion(equipo))]
     if datos.get("orden"):
@@ -158,8 +162,9 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
     historia += [t, Spacer(1, 8)]
 
     # ---------------------------------------------------------------- veredicto
-    general = veredicto_general(resultados)
-    color_general = ROJO if general == "CON FALLAS" else VERDE if general == "SIN FALLAS" else AMBAR
+    general = reparar.veredicto(resultados) if es_rep else veredicto_general(resultados)
+    color_general = (ROJO if general in ("CON FALLAS", "QUEDARON PROBLEMAS") else VERDE if general in ("SIN FALLAS", "REPARADO", "SIN PROBLEMAS")
+                     else AMBAR)
     caja = Table([[p(f"RESULTADO: {general}", ParagraphStyle("v", fontName="Helvetica-Bold", fontSize=13, leading=16,
                                                               textColor=colors.white))],
                   [p(conclusion(resultados), ParagraphStyle("c", parent=t_texto, textColor=colors.white))]], colWidths=[ancho])
@@ -170,7 +175,7 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
 
     # ---------------------------------------------------------------- resumen
     historia.append(p("Resumen", t_sub))
-    filas = [[p("Prueba", t_tabla, negrita=True), p("Resultado", t_tabla, negrita=True), p("Detalle", t_tabla, negrita=True)]]
+    filas = [[p("Reparación" if es_rep else "Prueba", t_tabla, negrita=True), p("Resultado", t_tabla, negrita=True), p("Detalle", t_tabla, negrita=True)]]
     for r in resultados:
         filas.append([p(r.titulo, t_tabla), p(r.veredicto, t_tabla, col[r.veredicto], True), p(r.motivo, t_tabla)])
     t = Table(filas, colWidths=[45 * mm, 25 * mm, ancho - 70 * mm], repeatRows=1)
@@ -198,7 +203,7 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
         historia.append(graf)
 
     # ---------------------------------------------------------------- detalle
-    historia.append(p("Detalle de cada prueba", t_sub))
+    historia.append(p("Detalle de cada reparación" if es_rep else "Detalle de cada prueba", t_sub))
     for r in resultados:
         bloque = [p(f"{r.titulo}: {r.veredicto}", t_sec, col[r.veredicto])]
         bloque += [p(l.strip(), t_linea2 if l.startswith("  ") else t_linea) for l in r.lineas]
@@ -211,8 +216,12 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
             historia.append(_grafico_disco(r.grafico["puntos"], ancho))
         historia.append(Spacer(1, 4))
     historia.append(Spacer(1, 10))
-    historia.append(p("PASA: sin fallas · FALLA: se encontró un problema · NO EVALUADO: la prueba no se pudo hacer "
-                      "(falta una herramienta, permisos o se canceló), no significa que el componente esté mal.", t_nota))
+    if es_rep:
+        historia.append(p("PASA: estaba bien o quedó reparado · FALLA: encontró un problema y no lo pudo reparar · NO EVALUADO: "
+                          "la reparación no se pudo hacer (sin permisos, sin internet o se canceló).", t_nota))
+    else:
+        historia.append(p("PASA: sin fallas · FALLA: se encontró un problema · NO EVALUADO: la prueba no se pudo hacer "
+                          "(falta una herramienta, permisos o se canceló), no significa que el componente esté mal.", t_nota))
 
     pie = (taller.get("nombre") + " · " if taller.get("nombre") else "") + f"Generado con OpenSTD Test {__version__}"
 
@@ -227,7 +236,7 @@ def generar(ruta: str, datos: dict, resultados: list[Resultado], equipo: dict, m
     os.makedirs(os.path.dirname(os.path.abspath(ruta)), exist_ok=True)
     tmp = ruta + ".tmp"
     doc = SimpleDocTemplate(tmp, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=16 * mm, bottomMargin=18 * mm,
-                            title="Reporte de diagnóstico", author=taller.get("nombre") or "OpenSTD Test", creator=f"OpenSTD Test {__version__}")
+                            title=titulo_doc, author=taller.get("nombre") or "OpenSTD Test", creator=f"OpenSTD Test {__version__}")
     doc.build(historia, onFirstPage=_pie, onLaterPages=_pie)
     os.replace(tmp, ruta)
 
